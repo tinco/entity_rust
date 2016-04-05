@@ -1,8 +1,3 @@
-#![feature(plugin_registrar)]
-
-extern crate rustc;
-extern crate syntax;
-
 //! # Goal
 //!
 //! We want to define components, store them in an efficient manner and
@@ -68,3 +63,11 @@ extern crate syntax;
 //! }}
 //! ```
 //!
+
+macro_rules! system {
+	() => ()
+}
+
+macro_rules! component {
+    () => ()
+}

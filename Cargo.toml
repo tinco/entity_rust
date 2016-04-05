@@ -1,7 +1,35 @@
 [package]
 name = "entity_rust"
-version = "0.1.0"
+version = "0.0.1"
 authors = ["Tinco Andringa <mail@tinco.nl>"]
+
+# A short blurb about the package. This is not rendered in any format when
+# uploaded to crates.io (aka this is not markdown).
+description = "Event driven CES framework for Rust with a macro DSL"
+
+# These URLs point to more information about the repository.
+documentation = "https://github.com/tinco/entity_rust"
+homepage = "https://github.com/tinco/entity_rust"
+repository = "https://github.com/tinco/entity_rust"
+
+# This points to a file in the repository (relative to this `Cargo.toml`). The
+# contents of this file are stored and indexed in the registry.
+readme = "README.md"
+
+# This is a small list of keywords used to categorize and search for this
+# package.
+keywords = ["ECS", "CES", "ES", "entity", "game"]
+
+# This is a string description of the license for this package. Currently
+# crates.io will validate the license provided against a whitelist of known
+# license identifiers from http://spdx.org/licenses/. Multiple licenses can be
+# separated with a `/`.
+license = "MIT"
+
+# If a project is using a nonstandard license, then this key may be specified in
+# lieu of the above key and must point to a file relative to this manifest
+# (similar to the readme key).
+license-file = "LICENSE"
 
 [lib]
 name = "entity_rust"
