@@ -1,0 +1,11 @@
+[package]
+name = "entity_rust"
+version = "0.1.0"
+authors = ["Tinco Andringa <mail@tinco.nl>"]
+
+[lib]
+name = "entity_rust"
+path = "src/lib.rs"
+plugin = true
+
+[dependencies]
