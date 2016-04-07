@@ -68,11 +68,5 @@
 extern crate lazy_static;
 
 pub mod components;
+pub mod entities;
 
-macro_rules! system {
-	() => ()
-}
-
-macro_rules! component {
-    () => ()
-}

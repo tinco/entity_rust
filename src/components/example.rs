@@ -1,5 +1,6 @@
-mod example {
+pub mod example {
 	use std::sync::{ Mutex };
+	use entities:: { ComponentList, EntityID };
 
 	/// The coolest way to implement this would be to have two lists references.
 	/// One mutable, one is immutable.
@@ -23,21 +24,16 @@ mod example {
 	/// the lock and all the functions here take a reference to the unlocked
 	/// component list given to them by the event system.
 
-	lazy_static! { static ref List: Mutex<Vec<(usize, Component)>> = Mutex::new(vec![]); }
+	lazy_static! { pub static ref List: Mutex<ComponentList<Component>> = Mutex::new(vec![]); }
 
 	/// Example component
-	struct Component {
+	pub struct Component {
 		x: f64,
 		y: f64
 	}
 
-	fn create(entity: usize, x: f64, y: f64) {
+	pub fn create(mut list: &ComponentList<Component>, entity: EntityID, x: f64, y: f64) {
 		let c = Component { x: x, y: y };
-		let mut list = List.lock().unwrap();
 		list.push((entity,c));
-	}
-
-	fn iter_mut() -> {
-
 	}
 }
