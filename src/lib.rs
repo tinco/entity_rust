@@ -69,4 +69,5 @@ extern crate lazy_static;
 
 pub mod components;
 pub mod entities;
+pub mod events;
 
