@@ -27,8 +27,20 @@ macro_rules! event {
      
 }
 
-/// 
+/// Queues an event to be dispatched.
+/// This means that the argument is put into the trigger queue for the
+/// event and the event handlers will be invoked either at the next run loop.
 macro_rules! trigger {
+	//
+	// Implementation idea: since we can't initialize events implicitly
+	// in any way (not even through a rustc plugin atm) maybe we can
+	// do it like lazy_static does it and initialize the event on the
+	// first invocation of trigger.
+	// 
+	// Initialisation that needs to happen:
+	//   The trigger queue for this particular event needs to be initialized
+	//   The run loop needs to be handed a reference to the trigger queue
+	//
 	() => ()
 }
 
