@@ -10,7 +10,11 @@
 /// those with non-overlapping mutable component lists to
 /// run in parallel.
 
-lazy_static! { pub static ref EventsQueue: Mutex<Vec<> }
+use std::collections::HashMap;
+
+lazy_static! {
+	pub static ref EventQueues: Mutex<HashMap<str, &mut Vec<Any>>> = Mutex::new(HashMap::new());
+}
 
 /// The event loop should trigger every n ms and execute any
 /// events that are queued up. Every event has a function
@@ -20,11 +24,21 @@ pub fn run_loop() {
 
 }
 
+pub fn get_event_queue_mut<T>(event_name: &str) -> &Vec<T> {
+	let map = EventQueues.lock().unwrap();
+	return map.get_mut(event_name).downcast_mut::<T>()
+}
+
+pub fn set_event_queue<T>(event_name: &str, initial_value: T) {
+	let map = EventQueues.lock().unwrap();
+	map.insert(event_name, vec![T]);
+}
+
 ///
 
 /// Defines an event.
 macro_rules! event {
-     
+	() => ()
 }
 
 /// Queues an event to be dispatched.
