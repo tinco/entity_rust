@@ -11,9 +11,12 @@
 /// run in parallel.
 
 use std::collections::HashMap;
+use std::sync::{ Mutex };
+use std::any::Any;
+use std::mem;
 
 lazy_static! {
-	pub static ref EventQueues: Mutex<HashMap<str, &mut Vec<Any>>> = Mutex::new(HashMap::new());
+	pub static ref EventQueues: Mutex<HashMap<&'static str, &'static mut usize>> = Mutex::new(HashMap::new());
 }
 
 /// The event loop should trigger every n ms and execute any
@@ -24,14 +27,25 @@ pub fn run_loop() {
 
 }
 
-pub fn get_event_queue_mut<T>(event_name: &str) -> &Vec<T> {
-	let map = EventQueues.lock().unwrap();
-	return map.get_mut(event_name).downcast_mut::<T>()
+pub fn get_event_queue_mut<T>(event_name: &str) -> Option<&Vec<T>> {
+	let map = &mut EventQueues.lock().unwrap();
+	return match map.get_mut(event_name) {
+		Some(v) => {
+			// :(
+			let r : &Vec<T> = unsafe { mem::transmute(v) };
+			Some(r) 
+		},
+		None => None
+	}
 }
 
-pub fn set_event_queue<T>(event_name: &str, initial_value: T) {
-	let map = EventQueues.lock().unwrap();
-	map.insert(event_name, vec![T]);
+pub fn set_event_queue<T>(event_name: &'static str, initial_value: T) {
+	let map = &mut EventQueues.lock().unwrap();
+	let queue = Box::new(vec![initial_value]);
+
+	// :(
+	let v : &mut usize = unsafe { mem::transmute(queue) };
+	map.insert(event_name, v);
 }
 
 ///
