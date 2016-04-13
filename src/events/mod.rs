@@ -33,7 +33,7 @@ pub fn event_queue_apply<T, F>(event_name: &str, action: F) -> bool
 	return match map.get_mut(event_name) {
 		Some(queue) => {
 			// :(
-			let r : &mut Vec<T> = unsafe { mem::transmute(queue) };
+			let r : &mut Box<Vec<T>> = unsafe { mem::transmute(queue) };
 			action(r);
 			true
 		},
