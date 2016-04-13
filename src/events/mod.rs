@@ -11,12 +11,12 @@
 /// run in parallel.
 
 use std::collections::HashMap;
-use std::sync::{ Mutex };
 use std::any::Any;
 use std::mem;
+use shared_mutex::{ SharedMutex, MappedSharedMutexWriteGuard };
 
 lazy_static! {
-	pub static ref EventQueues: Mutex<HashMap<&'static str, &'static mut usize>> = Mutex::new(HashMap::new());
+	pub static ref EventQueues: SharedMutex<HashMap<&'static str, &'static mut usize>> = SharedMutex::new(HashMap::new());
 }
 
 /// The event loop should trigger every n ms and execute any
@@ -27,20 +27,22 @@ pub fn run_loop() {
 
 }
 
-pub fn get_event_queue_mut<T>(event_name: &str) -> Option<&Vec<T>> {
-	let map = &mut EventQueues.lock().unwrap();
+pub fn event_queue_apply<T, F>(event_name: &str, action: F) -> bool
+		where F: FnOnce(&mut Vec<T>) {
+	let map = &mut EventQueues.write().unwrap();
 	return match map.get_mut(event_name) {
-		Some(v) => {
+		Some(queue) => {
 			// :(
-			let r : &Vec<T> = unsafe { mem::transmute(v) };
-			Some(r) 
+			let r : &mut Vec<T> = unsafe { mem::transmute(queue) };
+			action(r);
+			true
 		},
-		None => None
+		None => false
 	}
 }
 
 pub fn set_event_queue<T>(event_name: &'static str, initial_value: T) {
-	let map = &mut EventQueues.lock().unwrap();
+	let map = &mut EventQueues.write().unwrap();
 	let queue = Box::new(vec![initial_value]);
 
 	// :(
