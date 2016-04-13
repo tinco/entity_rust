@@ -13,7 +13,9 @@
 use std::collections::HashMap;
 use std::any::Any;
 use std::mem;
-use shared_mutex::{ SharedMutex, MappedSharedMutexWriteGuard };
+use shared_mutex::{ SharedMutex };
+
+pub mod example;
 
 lazy_static! {
 	pub static ref EventQueues: SharedMutex<HashMap<&'static str, &'static mut usize>> = SharedMutex::new(HashMap::new());

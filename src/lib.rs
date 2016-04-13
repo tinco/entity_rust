@@ -67,6 +67,7 @@
 #[macro_use]
 extern crate lazy_static;
 extern crate shared_mutex;
+extern crate uuid;
 
 pub mod components;
 pub mod entities;
