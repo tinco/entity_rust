@@ -29,7 +29,7 @@ pub fn run_loop() {
 
 }
 
-pub fn event_queue_apply<T, F>(event_name: &str, action: F) -> bool
+pub fn event_queue_apply<T, F>(event_name: String, action: F) -> bool
 		where F: FnOnce(&mut Vec<T>) {
 	let map = &mut EventQueues.write().unwrap();
 	return match map.get_mut(event_name) {
@@ -43,7 +43,7 @@ pub fn event_queue_apply<T, F>(event_name: &str, action: F) -> bool
 	}
 }
 
-pub fn set_event_queue<T>(event_name: &'static str, initial_value: T) {
+pub fn set_event_queue<T>(event_name: String, initial_value: T) {
 	let map = &mut EventQueues.write().unwrap();
 	let queue = Box::new(vec![initial_value]);
 
