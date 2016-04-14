@@ -18,7 +18,7 @@ use shared_mutex::{ SharedMutex };
 pub mod example;
 
 lazy_static! {
-	pub static ref EventQueues: SharedMutex<HashMap<&'static str, &'static mut usize>> = SharedMutex::new(HashMap::new());
+	pub static ref EventQueues: SharedMutex<HashMap<String, &'static mut usize>> = SharedMutex::new(HashMap::new());
 }
 
 /// The event loop should trigger every n ms and execute any

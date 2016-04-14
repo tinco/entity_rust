@@ -19,12 +19,12 @@ lazy_static! {
 
 /// Listeners are a list of functions that should be called by trigger
 pub fn trigger(argument: Argument) {
-	let updated = events::event_queue_apply(EventUUID, |event_queue| {
-		event_queue.append(argument);
+	let updated = events::event_queue_apply(*EventUUID, |event_queue| {
+		event_queue.push(argument);
 	});
 
 	if !updated {
-		events::set_event_queue(EventUUID, argument);
+		events::set_event_queue(*EventUUID, argument);
 	}
 }
 
