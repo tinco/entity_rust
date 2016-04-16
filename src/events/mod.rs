@@ -20,6 +20,14 @@ lazy_static! {
 	pub static ref EventQueues: SharedMutex<HashMap<String, Box<Any+'static+Sync>>> = SharedMutex::new(HashMap::new());
 }
 
+pub fn event_queue_push<T>(event_name: &String, event: T) where T: Any+'static+Sync {
+	let mut map = EventQueues.write().unwrap();
+	let mut entry = map.entry(event_name.clone()).or_insert(Box::new(Vec::<T>::new()));
+	let mut casted_entry = *entry as Box<Any + 'static>;
+	let mut vec = casted_entry.downcast_mut::<Vec<T>>().unwrap();
+	vec.push(event);
+}
+
 /// The event loop should trigger every n ms and execute any
 /// events that are queued up. Every event has a function
 /// that is called by the trigger! macro that puts the event
@@ -28,18 +36,6 @@ pub fn run_loop() {
 
 }
 
-pub fn event_queue_push<T>(event_name: &String, event: T) where T: Any+'static+Sync {
-	let mut map = EventQueues.write().unwrap();
-	if map.contains_key(event_name) {
-		let any_value = *map.get_mut(event_name).unwrap();
-		let any_value_casted = any_value as Box<Any +'static>;
-		let queue : &mut Vec<T> = any_value_casted.downcast_mut::<Vec<T>>().unwrap();
-		queue.push(event);
-	} else {
-		let queue = Box::new(vec![event]);
-		map.insert(event_name.clone(), queue);
-	}
-}
 /*
 pub fn get_events<T>(event_name: &String) -> Box<Vec<T>> where T: Any+Sync {
 	let map = EventQueues.read().unwrap();
