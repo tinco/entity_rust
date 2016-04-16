@@ -18,7 +18,7 @@ use shared_mutex::{ SharedMutex };
 pub mod example;
 
 lazy_static! {
-	pub static ref EventQueues: SharedMutex<HashMap<String, usize>> = SharedMutex::new(HashMap::new());
+	pub static ref EventQueues: SharedMutex<HashMap<String, Box<Any+Sync>>> = SharedMutex::new(HashMap::new());
 }
 
 /// The event loop should trigger every n ms and execute any
@@ -29,38 +29,17 @@ pub fn run_loop() {
 
 }
 
-pub fn event_queue_push<T>(event_name: &String, event: T) {
-	let map = &mut EventQueues.write().unwrap();
+pub fn event_queue_push<T>(event_name: &String, event: T) where T: Any+Sync {
+	let map = EventQueues.write().unwrap();
 	if map.contains_key(event_name) {
-		let queue = transmute_from_generic_ref(*map.get_mut(event_name).unwrap());
-		(*queue).push(event)
+		let any_value = **map.get(event_name).unwrap();
+		let queue : Vec<T> = any_value.downcast_ref::<Vec<T>>().unwrap();
+		queue.push(event)
 	} else {
 		let queue = Box::new(vec![event]);
-		map.insert(event_name.clone(), transmute_to_generic_ref(queue));
+		map.insert(event_name.clone(), queue);
 	}
 }
-
-/// What do I want?
-/// I want to have a hashmap of references to a mutable vec of T
-/// a reference is of size usize, so instead we store usizes that
-/// we transmute to references to the Vec. A Box is a reference to
-/// a Vec, and we want our queues to be allocated on the heap so
-/// we use boxes.
-
-
-/// src/events/mod.rs:45:38: 45:52 error: mutating transmuted &mut T from &T may cause undefined behavior,
-/// consider instead using an UnsafeCell, #[deny(mutable_transmutes)] on by default
-fn transmute_from_generic_ref<T>(value: usize) -> Box<Vec<T>> {
-	let r : Box<Vec<T>> = unsafe { mem::transmute(value) };
-	return r;
-}
-
-fn transmute_to_generic_ref<T>(value: Box<Vec<T>>) -> usize {
-	let r : usize = unsafe { mem::transmute(value) };
-	return r;
-}
-
-///
 
 /// Defines an event.
 macro_rules! event {
