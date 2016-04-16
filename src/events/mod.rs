@@ -29,27 +29,27 @@ pub fn run_loop() {
 
 }
 
-pub fn event_queue_apply<T, F>(event_name: String, action: F) -> bool
-		where F: FnOnce(&mut Vec<T>) {
+pub fn event_queue_push<T>(event_name: &String, event: T) {
 	let map = &mut EventQueues.write().unwrap();
-	return match map.get_mut(event_name) {
-		Some(queue) => {
-			// :(
-			let r : &mut Box<Vec<T>> = unsafe { mem::transmute(queue) };
-			action(r);
-			true
-		},
-		None => false
+	if map.contains_key(event_name) {
+		let queue = transmute_from_generic_ref(map.get(event_name).unwrap());
+		queue.push(event)
+	} else {
+		let queue = Box::new(vec![event]);
+		map.insert(event_name.clone(), transmute_to_generic_ref(queue));
 	}
 }
 
-pub fn set_event_queue<T>(event_name: String, initial_value: T) {
-	let map = &mut EventQueues.write().unwrap();
-	let queue = Box::new(vec![initial_value]);
 
-	// :(
-	let v : &mut usize = unsafe { mem::transmute(queue) };
-	map.insert(event_name, v);
+/// src/events/mod.rs:45:38: 45:52 error: mutating transmuted &mut T from &T may cause undefined behavior,consider instead using an UnsafeCell, #[deny(mutable_transmutes)] on by default
+fn transmute_from_generic_ref<'a,T>(value: &'a &mut usize) -> &'a mut Box<Vec<T>> {
+	let r : &mut Box<Vec<T>> = unsafe { mem::transmute(value) };
+	return r;
+}
+
+fn transmute_to_generic_ref<'a,T>(value: Box<Vec<T>>) -> &'a mut usize {
+	let r : &'a mut usize = unsafe { mem::transmute(value) };
+	return r;
 }
 
 ///
