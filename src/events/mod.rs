@@ -12,13 +12,12 @@
 
 use std::collections::HashMap;
 use std::any::Any;
-use std::mem;
 use shared_mutex::{ SharedMutex };
 
 pub mod example;
 
 lazy_static! {
-	pub static ref EventQueues: SharedMutex<HashMap<String, Box<Any+Sync>>> = SharedMutex::new(HashMap::new());
+	pub static ref EventQueues: SharedMutex<HashMap<String, Box<Any+'static+Sync>>> = SharedMutex::new(HashMap::new());
 }
 
 /// The event loop should trigger every n ms and execute any
@@ -29,17 +28,25 @@ pub fn run_loop() {
 
 }
 
-pub fn event_queue_push<T>(event_name: &String, event: T) where T: Any+Sync {
-	let map = EventQueues.write().unwrap();
+pub fn event_queue_push<T>(event_name: &String, event: T) where T: Any+'static+Sync {
+	let mut map = EventQueues.write().unwrap();
 	if map.contains_key(event_name) {
-		let any_value = **map.get(event_name).unwrap();
-		let queue : Vec<T> = any_value.downcast_ref::<Vec<T>>().unwrap();
-		queue.push(event)
+		let any_value = *map.get_mut(event_name).unwrap();
+		let any_value_casted = any_value as Box<Any +'static>;
+		let queue : &mut Vec<T> = any_value_casted.downcast_mut::<Vec<T>>().unwrap();
+		queue.push(event);
 	} else {
 		let queue = Box::new(vec![event]);
 		map.insert(event_name.clone(), queue);
 	}
 }
+/*
+pub fn get_events<T>(event_name: &String) -> Box<Vec<T>> where T: Any+Sync {
+	let map = EventQueues.read().unwrap();
+	let any_value = **map.get(event_name).unwrap();
+	let queue : Vec<T> = any_value.downcast_ref::<Vec<T>>().unwrap();
+	return *(map.get(event_name).unwrap());
+}*/
 
 /// Defines an event.
 macro_rules! event {
