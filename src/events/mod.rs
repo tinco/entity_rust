@@ -22,8 +22,8 @@ lazy_static! {
 
 pub fn event_queue_push<T>(event_name: &String, event: T) where T: Any+'static+Sync {
 	let mut map = EventQueues.write().unwrap();
-	let mut entry = map.entry(event_name.clone()).or_insert(Box::new(Vec::<T>::new()));
-	let mut casted_entry = *entry as Box<Any + 'static>;
+	let mut entry = *map.entry(event_name.clone()).or_insert(Box::new(Vec::<T>::new()));
+	let mut casted_entry = entry as Box<Any + 'static>;
 	let mut vec = casted_entry.downcast_mut::<Vec<T>>().unwrap();
 	vec.push(event);
 }
