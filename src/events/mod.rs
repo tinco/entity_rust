@@ -38,6 +38,14 @@ pub fn event_queue_get<T>(event_name: &String) -> MappedSharedMutexReadGuard<Vec
 	return vec;
 }
 
+pub fn event_queue_clear<T>(event_name: &String) where T: Any+'static+Sync {
+	let mut map = EventQueues.write().expect("EventQueues is not initialized.");
+	let mut entry = map.entry(event_name.clone()).or_insert(Box::new(Vec::<T>::new()));
+	let mut casted_entry = &mut **entry as &mut Any;
+	let mut vec = casted_entry.downcast_mut::<Vec<T>>().expect("Could not cast created entry to Vec<T>");
+	vec.clear();
+}
+
 /// The event loop should trigger every n ms and execute any
 /// events that are queued up. Every event has a function
 /// that is called by the trigger! macro that puts the event

@@ -5,10 +5,10 @@ use std::collections::HashMap;
 use entity_rust::events;
 
 #[test]
-#[ignore] // pending reset (tests pollute eachother now)
 fn event_queue_initial_set() {
 	let i : i64 = 5;
 	let name = String::from("my_queue");
+	events::event_queue_clear::<i64>(&name);
 	events::event_queue_push(&name, i);
 	let queue = events::event_queue_get(&name);
 	assert!(queue.len() == 1);
@@ -21,6 +21,7 @@ fn event_queue_multi_set() {
 	let j : i64 = 352;
 	let k : i64 = 234;
 	let name = String::from("my_queue");
+	events::event_queue_clear::<i64>(&name);
 	events::event_queue_push(&name, i);
 	events::event_queue_push(&name, j);
 	events::event_queue_push(&name, k);
