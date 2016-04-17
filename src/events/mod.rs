@@ -28,7 +28,7 @@ pub fn event_queue_push<T>(event_name: &String, event: T) where T: Any+'static+S
 	vec.push(event);
 }
 
-pub fn get_events<'a,T>(event_name: &String) -> &'a Vec<T> where T: Any+'static+Sync {
+pub fn get_events<T>(event_name: &String) -> &Vec<T> where T: Any+'static+Sync {
 	let map = EventQueues.read().unwrap();
 	let entry = map.get(event_name).unwrap();
 	let casted_entry = entry as &Any;
