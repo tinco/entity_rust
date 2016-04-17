@@ -9,6 +9,18 @@
 /// sequentially after that. Perhaps we can even schedule
 /// those with non-overlapping mutable component lists to
 /// run in parallel.
+///
+/// The event loop should trigger every n ms and execute any
+/// events that are queued up. Every event has a function
+/// that is called by the trigger! macro that puts the event
+/// on the queue.
+///
+/// 1. We need to register which events have unacknowledged messages.
+/// 2. We need to register handlers.
+/// 3. We need to have a this_tick and a next_tick queue
+/// 4. We need a mechanism for actually receiving the triggers and
+///    handling the special 'tick' behaviour.
+///
 
 use std::collections::HashMap;
 use std::any::Any;
@@ -46,10 +58,6 @@ pub fn event_queue_clear<T>(event_name: &String) where T: Any+'static+Sync {
 	vec.clear();
 }
 
-/// The event loop should trigger every n ms and execute any
-/// events that are queued up. Every event has a function
-/// that is called by the trigger! macro that puts the event
-/// on the queue.
 pub fn run_loop() {
 
 }
@@ -62,17 +70,7 @@ macro_rules! event {
 /// Queues an event to be dispatched.
 /// This means that the argument is put into the trigger queue for the
 /// event and the event handlers will be invoked either at the next run loop.
+/// or immediately.
 macro_rules! trigger {
-	//
-	// Implementation idea: since we can't initialize events implicitly
-	// in any way (not even through a rustc plugin atm) maybe we can
-	// do it like lazy_static does it and initialize the event on the
-	// first invocation of trigger.
-	// 
-	// Initialisation that needs to happen:
-	//   The trigger queue for this particular event needs to be initialized
-	//   The run loop needs to be handed a reference to the trigger queue
-	//
 	() => ()
 }
-
