@@ -28,7 +28,7 @@ pub fn event_queue_push<T>(event_name: &String, event: T) where T: Any+'static+S
 	vec.push(event);
 }
 
-pub fn get_events<T>(event_name: &String) -> MappedSharedMutexReadGuard<Vec<T>> where T: Any+'static+Sync {
+pub fn event_queue_get<T>(event_name: &String) -> MappedSharedMutexReadGuard<Vec<T>> where T: Any+'static+Sync {
 	let map = EventQueues.read().unwrap();
 	let vec = map.into_mapped().map(|m| {
 		let entry = m.get(event_name).unwrap();

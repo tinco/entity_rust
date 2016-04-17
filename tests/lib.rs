@@ -5,16 +5,14 @@ use entity_rust::events;
 #[test]
 fn event_queue_accessors() {
 	let i : i64 = 5;
-	events::set_event_queue("my_queue", i);
-	let existed = events::event_queue_apply("my_queue", |queue| {
-		assert!(queue.len() == 1);
-		assert!(i == queue[0])
-	});
-	if !existed {
-		assert!(false)
-	}
+	let name = String::from("my_queue");
+	events::event_queue_push(&name, i);
+	let queue = events::event_queue_get(&name);
+	assert!(queue.len() == 1);
+	assert!(i == queue[0]);
 }
 
+/*
 #[test]
 fn events_example_trigger() {
 	let arg = events::example::Argument { x: 1, y: 2};
@@ -27,3 +25,4 @@ fn events_example_trigger() {
 		assert!(false)
 	}
 }
+*/
