@@ -22,10 +22,18 @@ lazy_static! {
 
 pub fn event_queue_push<T>(event_name: &String, event: T) where T: Any+'static+Sync {
 	let mut map = EventQueues.write().unwrap();
-	let mut entry = *map.entry(event_name.clone()).or_insert(Box::new(Vec::<T>::new()));
-	let mut casted_entry = entry as Box<Any + 'static>;
+	let mut entry = map.entry(event_name.clone()).or_insert(Box::new(Vec::<T>::new()));
+	let mut casted_entry = &mut **entry as &mut Any;
 	let mut vec = casted_entry.downcast_mut::<Vec<T>>().unwrap();
 	vec.push(event);
+}
+
+pub fn get_events<'a,T>(event_name: &String) -> &'a Vec<T> where T: Any+'static+Sync {
+	let map = EventQueues.read().unwrap();
+	let entry = map.get(event_name).unwrap();
+	let casted_entry = entry as &Any;
+	let vec = casted_entry.downcast_ref::<Vec<T>>().unwrap();
+	return vec;
 }
 
 /// The event loop should trigger every n ms and execute any
@@ -35,14 +43,6 @@ pub fn event_queue_push<T>(event_name: &String, event: T) where T: Any+'static+S
 pub fn run_loop() {
 
 }
-
-/*
-pub fn get_events<T>(event_name: &String) -> Box<Vec<T>> where T: Any+Sync {
-	let map = EventQueues.read().unwrap();
-	let any_value = **map.get(event_name).unwrap();
-	let queue : Vec<T> = any_value.downcast_ref::<Vec<T>>().unwrap();
-	return *(map.get(event_name).unwrap());
-}*/
 
 /// Defines an event.
 macro_rules! event {
