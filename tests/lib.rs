@@ -1,5 +1,7 @@
 extern crate entity_rust;
 
+use std::collections::HashMap;
+
 use entity_rust::events;
 
 #[test]
@@ -10,6 +12,16 @@ fn event_queue_accessors() {
 	let queue = events::event_queue_get(&name);
 	assert!(queue.len() == 1);
 	assert!(i == queue[0]);
+}
+
+#[test]
+fn test_how_string_works_as_hashmap_index() {
+	let name = String::from("my_queue");
+	let mut m : HashMap<String, i64> = HashMap::new();
+	let i = 543;
+	m.insert(name.clone(), i);
+	let j = *m.get(&name.clone()).unwrap();
+	assert!(i == j);
 }
 
 /*

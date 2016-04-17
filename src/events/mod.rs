@@ -21,19 +21,19 @@ lazy_static! {
 }
 
 pub fn event_queue_push<T>(event_name: &String, event: T) where T: Any+'static+Sync {
-	let mut map = EventQueues.write().unwrap();
+	let mut map = EventQueues.write().expect("EventQueues is not initialized.");
 	let mut entry = map.entry(event_name.clone()).or_insert(Box::new(Vec::<T>::new()));
 	let mut casted_entry = &mut **entry as &mut Any;
-	let mut vec = casted_entry.downcast_mut::<Vec<T>>().unwrap();
+	let mut vec = casted_entry.downcast_mut::<Vec<T>>().expect("Could not cast created entry to Vec<T>");
 	vec.push(event);
 }
 
 pub fn event_queue_get<T>(event_name: &String) -> MappedSharedMutexReadGuard<Vec<T>> where T: Any+'static+Sync {
-	let map = EventQueues.read().unwrap();
+	let map = EventQueues.read().expect("EventQueues is not initialized.");
 	let vec = map.into_mapped().map(|m| {
-		let entry = m.get(event_name).unwrap();
-		let casted_entry = entry as &Any;
-		return casted_entry.downcast_ref::<Vec<T>>().unwrap();
+		let entry = m.get(event_name).expect("Could not get a particular event queue.");
+		let casted_entry = & **entry as & Any;
+		return casted_entry.downcast_ref::<Vec<T>>().expect("Could not cast gotten entry to Vec<T>");
 	});
 	return vec;
 }
