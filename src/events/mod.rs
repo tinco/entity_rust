@@ -22,14 +22,31 @@
 ///    handling the special 'tick' behaviour.
 ///
 
-use std::collections::HashMap;
+use std::collections::HashSet;
 use std::any::Any;
-use shared_mutex::{ SharedMutex, MappedSharedMutexReadGuard };
+use shared_mutex::{ SharedMutex };
 
 pub mod example;
 
 static_any_vec_map! { this_tick_queues, String }
 static_any_vec_map! { next_tick_queues, String }
+
+lazy_static! {
+	pub static ref this_tick_new_events: SharedMutex<HashSet<String>> = SharedMutex::new(HashSet::new());
+	pub static ref next_tick_new_events: SharedMutex<HashSet<String>> = SharedMutex::new(HashSet::new());
+}
+
+pub fn trigger_this_tick<T>(event_name: &String, data: T) where T: Any+'static+Sync {
+	this_tick_queues::push(event_name, data);
+	let mut new_events_set = this_tick_new_events.write().expect("this_tick_new_events mutex was corrupted.");
+	new_events_set.insert(event_name.clone());
+}
+
+pub fn trigger_next_tick<T>(event_name: &String, data: T) where T: Any+'static+Sync {
+	next_tick_queues::push(event_name, data);
+	let mut new_events_set = next_tick_new_events.write().expect("next_tick_new_events mutex was corrupted.");
+	new_events_set.insert(event_name.clone());
+}
 
 pub fn run_loop() {
 
