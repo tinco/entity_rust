@@ -19,7 +19,7 @@
 /// For example the following invocation:
 ///
 /// system! my_system {
-///	  on!(event_name, { positions: Position}, { descriptions: Description }) {
+///   on!(event_name, { positions: Position}, { descriptions: Description }) {
 ///     let position = positions[0];
 ///     descriptions[0].set(format!("Position = {},{}", position.x, position.y));
 ///   } 
