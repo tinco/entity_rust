@@ -15,12 +15,19 @@
 /// that is called by the trigger! macro that puts the event
 /// on the queue.
 ///
-/// 1. We need to register which events have unacknowledged messages.
 /// 2. We need to register handlers.
-/// 3. We need to have a this_tick and a next_tick queue
 /// 4. We need a mechanism for actually receiving the triggers and
 ///    handling the special 'tick' behaviour.
 ///
+/// Event handlers: 
+/// 
+///  We call them with our arguments, but they need references to
+///  the components they want too. Mega awesome would be if at some
+///  point we can dispatch handlers in parallel depending on whether
+///  they mutate the components.
+///
+///  For this we need to know what components the handler uses and
+///  whether they mutate them or not.
 
 use std::collections::HashSet;
 use std::any::Any;
