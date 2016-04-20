@@ -50,4 +50,11 @@
 /// all on! calls. Ok this is definitely a possibility. We could simply match the on! macro in the system! macro
 /// and use that to populate the register function.
 ///
+/// How are we going to store/invoke these handlers.
 /// 
+/// To invoke the handler it will require the state, the components and the data list passed in the right order.
+/// we could have a separate invoker function that invokes event_name with the arguments passed in. Its arguments
+/// would be the component lists in two vecs, as well as the event data list.
+///
+/// This could work!
+///
