@@ -19,7 +19,9 @@
 /// For example the following invocation:
 ///
 /// system! my_system {
+///   state! { i: i64 }
 ///   on!(event_name, { positions: Position}, { descriptions: Description }) {
+///     state.i += 1;
 ///     let position = positions[0];
 ///     descriptions[0].set(format!("Position = {},{}", position.x, position.y));
 ///   } 
@@ -28,11 +30,24 @@
 /// Expands to:
 ///
 /// pub mod my_system {
-///   struct State {}
+///   struct State { i: i64 }
 ///   
 ///   pub fn event_name(state: &mut State, data: &Vec<event_name::Data>, positions: &Vec<Position>, descriptions: &mut Vec<Description> ) {
 ///     let position = positions[0];
 ///     descriptions[0].set(format!("Position = {},{}", position.x, position.y));
 ///   }
 ///
+///   pub fn register() {
+///      events::register_handler(event_name); // etc..
+///   }
 /// }
+///
+/// How are we going to register this handler at the event loop?
+///
+/// Ideally we would have just one 'register' call per system. But to have that the register call should enable
+/// all nested handlers. We could also just have one handler per system. That would make things easier..
+/// Maybe there's some scheme using recursive macros that we could use to generate a register_system that collects
+/// all on! calls. Ok this is definitely a possibility. We could simply match the on! macro in the system! macro
+/// and use that to populate the register function.
+///
+/// 
