@@ -58,3 +58,50 @@
 ///
 /// This could work!
 ///
+
+
+
+
+#[macro_export]
+macro_rules! system {
+	($system_name:ident { $contents:tt }) => {
+		pub mod $system_name {
+			system_contents! ( $contents ) [ ]
+		}
+	} 
+}
+
+#[macro_export]
+macro_rules! system_contents {
+	// Consume on! invocations
+	( 
+		( on ! ($event_name:ident, $($event_declaration:tt)* ) { $($event_body:tt)* } $($rest:tt)* ) [ $($event_decls:tt)* ] 
+	) => (
+		on!($event_name, $($event_declaration)*) { 
+			$event_body
+		}
+
+		system_contents! ( $rest ) [ ( $event_name, $event_declaration ) , $event_decls ]
+	)
+
+	// When all content has been consumed emit register macro
+	(
+		() [ $($event_decls:tt)* ] 
+	) => (
+		system_register!( $event_decls )
+	)
+}
+
+#[macro_export]
+macro_rules! on {
+	// pub fn () {}
+}
+
+#[macro_export]
+macro_rules! system_register {
+	// pub fn () {}
+}
+
+
+
+
