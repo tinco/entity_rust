@@ -82,7 +82,7 @@ macro_rules! system_contents {
 		}
 
 		system_contents! ( $rest ) [ ( $event_name, $event_declaration ) , $event_decls ]
-	)
+	);
 
 	// When all content has been consumed emit register macro
 	(
@@ -94,14 +94,14 @@ macro_rules! system_contents {
 
 #[macro_export]
 macro_rules! on {
-	// pub fn () {}
+	() => (
+		// pub fn () {}
+	)
 }
 
 #[macro_export]
 macro_rules! system_register {
-	// pub fn () {}
+	() => (
+		// pub fn () {}
+	)
 }
-
-
-
-
