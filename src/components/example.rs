@@ -23,7 +23,7 @@ use entities::*;
 /// the lock and all the functions here take a reference to the unlocked
 /// component list given to them by the event system.
 
-lazy_static! { pub static ref List: Mutex<ComponentList<Component>> = Mutex::new(vec![]); }
+lazy_static! { pub static ref LIST: Mutex<ComponentList<Component>> = Mutex::new(vec![]); }
 
 /// Example component
 pub struct Component {

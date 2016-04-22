@@ -59,14 +59,11 @@
 /// This could work!
 ///
 
-
-
-
 #[macro_export]
 macro_rules! system {
-	($system_name:ident { $contents:tt }) => {
+	( $system_name:ident { $($contents:tt)* } ) => {
 		pub mod $system_name {
-			system_contents! ( $contents ) [ ]
+			system_contents!{ ( $($contents)* ) [ ] }
 		}
 	} 
 }
@@ -74,34 +71,46 @@ macro_rules! system {
 #[macro_export]
 macro_rules! system_contents {
 	// Consume on! invocations
-	( 
-		( on ! ($event_name:ident, $($event_declaration:tt)* ) { $($event_body:tt)* } $($rest:tt)* ) [ $($event_decls:tt)* ] 
+	(
+		(
+			on! (
+				$event_name:ident, $($event_declaration:tt)*
+			) {
+				$($event_body:tt)*
+			} $($rest:tt)*
+		) [ 
+			$($event_decls:tt)* 
+		] 
 	) => (
-		on!($event_name, $($event_declaration)*) { 
-			$event_body
-		}
+		on! { ($event_name, $($event_declaration)*) { 
+			$($event_body)*
+		}}
 
-		system_contents! ( $rest ) [ ( $event_name, $event_declaration ) , $event_decls ]
+		system_contents!{( $($rest)* ) [ ( $event_name, $($event_declaration)* ) , $($event_decls)* ] }
 	);
 
 	// When all content has been consumed emit register macro
 	(
 		() [ $($event_decls:tt)* ] 
 	) => (
-		system_register!( $event_decls )
+		system_register!{ $($event_decls)* }
 	)
 }
 
 #[macro_export]
 macro_rules! on {
-	() => (
-		// pub fn () {}
+	( ($event_name:ident, $($event_declaration:tt)* ) { $($event_body:tt)* } ) => (
+		pub fn $event_name() {
+			$($event_body)*
+		}
 	)
 }
 
 #[macro_export]
 macro_rules! system_register {
-	() => (
-		// pub fn () {}
+	( $($event_decls:tt)* )=> (
+		pub fn register() {
+			// TODO
+		}
 	)
 }

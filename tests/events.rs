@@ -6,7 +6,7 @@ use entity_rust::events;
 fn events_example_trigger() {
 	let arg = events::example::Argument { x: 1, y: 2};
 	events::example::trigger(arg.clone());
-	let queue = events::this_tick_queues::get(&*events::example::EventUUID);
+	let queue = events::this_tick_queues::get(&*events::example::EVENT_UUID);
 	assert!(queue.len() == 1);
 	assert!(arg == queue[0])
 }
