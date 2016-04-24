@@ -22,4 +22,5 @@ fn generates_functions() {
 #[test]
 fn generates_state() {
 	let s = my_system::State::default();
+	assert!(s.x == 0);
 }

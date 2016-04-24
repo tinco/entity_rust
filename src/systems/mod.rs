@@ -118,11 +118,10 @@ macro_rules! on {
 
 #[macro_export]
 macro_rules! state {
-	( $( $state_declaration:tt )* ) => (
+	( $( $name:ident : $field:ty )* ) => (
 		#[derive(Default)]
 		pub struct State {
-			//$($state_declaration)*
-			bla: i64
+			pub $($name : $field),*
 		}
 	)
 }
