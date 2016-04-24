@@ -89,6 +89,16 @@ macro_rules! system_contents {
 		system_contents!{( $($rest)* ) [ ( $event_name, $($event_declaration)* ) , $($event_decls)* ] }
 	);
 
+	(
+		(
+			state! { $($state_declaration:tt)* } $($rest:tt)*
+		) [ $($event_decls:tt)* ] 
+	) => (
+		state! { $($state_declaration)* }
+
+		system_contents!{( $($rest)* ) [ $($event_decls)* ] }
+	);
+
 	// When all content has been consumed emit register macro
 	(
 		() [ $($event_decls:tt)* ] 
@@ -107,10 +117,21 @@ macro_rules! on {
 }
 
 #[macro_export]
+macro_rules! state {
+	( $( $state_declaration:tt )* ) => (
+		#[derive(Default)]
+		pub struct State {
+			//$($state_declaration)*
+			bla: i64
+		}
+	)
+}
+
+#[macro_export]
 macro_rules! system_register {
 	( $($event_decls:tt)* )=> (
 		pub fn register() {
-			// TODO
+			
 		}
 	)
 }

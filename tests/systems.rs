@@ -5,6 +5,7 @@ extern crate lazy_static;
 extern crate shared_mutex;
 
 system!( my_system {
+	state! { x: i64 }
 
 	on!(my_event, bla) {
 		// 
@@ -13,6 +14,12 @@ system!( my_system {
 });
 
 #[test]
-fn register_function() {
+fn generates_functions() {
 	my_system::register();
+	my_system::my_event();
+}
+
+#[test]
+fn generates_state() {
+	let s = my_system::State::default();
 }
