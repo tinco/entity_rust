@@ -4,8 +4,10 @@ pub mod my_system {
 		i: i64
 	}
 
-	pub static ref state: SharedMutex<State> = SharedMutex::new(State::default());
-	
+	lazy_static! {
+		pub static ref state: SharedMutex<State> = SharedMutex::new(State::default());
+	}
+
 	impl State {
 		fn event_name(&mut self, data: &Vec<event_name::Data>, positions: &Vec<Position>, descriptions: &mut Vec<Description> ) {
 			let position = positions[0];

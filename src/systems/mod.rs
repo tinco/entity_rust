@@ -63,6 +63,10 @@
 macro_rules! system {
 	( $system_name:ident { $($contents:tt)* } ) => {
 		pub mod $system_name {
+			use std::collections::HashMap;
+			use std::any::Any;
+			use shared_mutex::{ SharedMutex, MappedSharedMutexReadGuard };
+
 			system_contents!{ ( $($contents)* ) [ ] }
 		}
 	} 
@@ -122,6 +126,10 @@ macro_rules! state {
 		#[derive(Default)]
 		pub struct State {
 			pub $($name : $field),*
+		}
+
+		lazy_static! {
+			pub static ref state: SharedMutex<State> = SharedMutex::new(State::default());
 		}
 	)
 }

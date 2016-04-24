@@ -23,4 +23,15 @@ fn generates_functions() {
 fn generates_state() {
 	let s = my_system::State::default();
 	assert!(s.x == 0);
+
+	{
+		let mut state = my_system::state.write().expect("System lock corrupted.");
+		state.x = 2;
+	}
+
+	{
+		let state = my_system::state.read().expect("System lock corrupted");
+		assert!(state.x == 2);
+	}
+
 }
