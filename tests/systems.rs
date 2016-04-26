@@ -8,7 +8,7 @@ system!( my_system {
 	state! { x: i64 }
 
 	on!(my_event, bla) {
-		// 
+		self.x += 1;
 	}
 
 });
