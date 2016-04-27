@@ -110,7 +110,15 @@ macro_rules! system_contents {
 #[macro_export]
 macro_rules! on {
 	( ($event_name:ident, { $( $mut_name:ident : $mut_typ:ty )* } , { $($name:ident : $typ:ty)* } ) $event_body:block ) => (
-		//{ positions: Position}, { descriptions: Description }) 
+
+		impl State {
+			pub fn $event_name(&mut self,
+				data: &Vec<$event_name::Data>,
+				$( $name : &Vec<$typ>),*
+				$( $mut_name : &mut Vec<$mut_typ> ),* ) $event_body
+
+		}
+
 		pub fn $event_name(data: Vec<$event_name::Data>, components: Vec<&Any>, mut_components: Vec<&mut Any>) {
 			let components_iter = components.iter();
 			let components_iter = mut_components.iter_mut();
@@ -158,3 +166,20 @@ macro_rules! system_register {
 		}
 	)
 }
+
+pub mod example_event {
+	pub struct Data {
+		x: i64
+	}
+}
+
+system!( example_system {
+	state! { x: i64 }
+
+	on!( example_event, { positions: State }, {}) {
+		self.x += 1;
+	}
+
+});
+
+
