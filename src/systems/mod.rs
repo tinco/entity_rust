@@ -84,7 +84,7 @@ macro_rules! system_contents {
 			$($event_decls:tt)* 
 		] 
 	) => (
-		on! { ($event_name, $($event_declaration)*) $event_body }
+		on! { ($event_name, $( $event_declaration)* ) $event_body }
 
 		system_contents!{( $($rest)* ) [ ( $event_name, $($event_declaration)* ) , $($event_decls)* ] }
 	);
@@ -109,9 +109,29 @@ macro_rules! system_contents {
 
 #[macro_export]
 macro_rules! on {
-	( ($event_name:ident, $($event_declaration:tt)* ) $event_body:block ) => (
-		pub fn $event_name() {
-			state.write().expect("Event state corrupted").$event_name($($event_declaration));
+	( ($event_name:ident, { $( $mut_name:ident : $mut_typ:ty )* } , { $($name:ident : $typ:ty)* } ) $event_body:block ) => (
+		//{ positions: Position}, { descriptions: Description }) 
+		pub fn $event_name(data: Vec<$event_name::Data>, components: Vec<&Any>, mut_components: Vec<&mut Any>) {
+			let components_iter = components.iter();
+			let components_iter = mut_components.iter_mut();
+
+			$(
+				let $name : &Vec<$typ> = components_iter
+					.next().expect("Event components list too short.")
+					.downcast_ref().expect("Event component not of expected type.");
+			)*
+
+			$(
+				let $mut_name: &mut Vec<$mut_name> = components_iter
+					.next().expect("Event components list too short.")
+					.downcast_ref().expect("Event component not of expected type.");
+			)*
+
+			state.write().expect("Event state corrupted").$event_name(
+				data,
+				$($name),*
+				$($mut_name),*
+			);
 		}
 	)
 }
