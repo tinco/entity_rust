@@ -111,6 +111,8 @@ macro_rules! system_contents {
 macro_rules! on {
 	( ($event_name:ident, { $( $mut_name:ident : $mut_typ:ty )* } , { $($name:ident : $typ:ty)* } ) $event_body:block ) => (
 
+		use super::$event_name;
+
 		impl State {
 			pub fn $event_name(&mut self,
 				data: &Vec<$event_name::Data>,
