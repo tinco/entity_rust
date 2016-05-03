@@ -79,12 +79,12 @@ macro_rules! system_contents {
 		(
 			on! (
 				$event_name:ident, $($event_declaration:tt)*
-			) $event_body:block $($rest:tt)*
+			) $_self:ident => $event_body:block $($rest:tt)*
 		) [ 
 			$($event_decls:tt)* 
 		] 
 	) => (
-		on! { ($event_name, $( $event_declaration)* ) $event_body }
+		on! { ($event_name, $( $event_declaration)* ) $_self => $event_body }
 
 		system_contents!{( $($rest)* ) [ ( $event_name, $($event_declaration)* ) , $($event_decls)* ] }
 	);
@@ -109,13 +109,13 @@ macro_rules! system_contents {
 
 #[macro_export]
 macro_rules! on {
-	( ($event_name:ident, { $( $mut_name:ident : $mut_typ:ty )* } , { $($name:ident : $typ:ty)* } ) $event_body:block ) => (
+	( ($event_name:ident, { $( $mut_name:ident : $mut_typ:ty )* } , { $($name:ident : $typ:ty)* } ) $_self:ident => $event_body:block ) => (
 
 		use super::$event_name;
 
 		impl State {
-			pub fn $event_name(&mut self,
-				data: &Vec<$event_name::Data>,
+			pub fn $event_name(&mut $_self,
+				data: Vec<$event_name::Data>,
 				$( $name : &Vec<$typ>),*
 				$( $mut_name : &mut Vec<$mut_typ> ),* ) $event_body
 
@@ -178,7 +178,7 @@ pub mod example_event {
 system!( example_system {
 	state! { x: i64 }
 
-	on!( example_event, { positions: State }, {}) {
+	on!( example_event, { positions: State }, {}) self => {
 		self.x += 1;
 	}
 
