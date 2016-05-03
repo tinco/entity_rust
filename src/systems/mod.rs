@@ -117,13 +117,13 @@ macro_rules! on {
 			pub fn $event_name(&mut $_self,
 				data: Vec<$event_name::Data>,
 				$( $name : &Vec<$typ>),*
-				$( $mut_name : &mut Vec<$mut_typ> ),* ) $event_body
+				$( $mut_name : &Vec<$mut_typ> ),* ) $event_body
 
 		}
 
-		pub fn $event_name(data: Vec<$event_name::Data>, components: Vec<&Any>, mut_components: Vec<&mut Any>) {
-			let components_iter = components.iter();
-			let components_iter = mut_components.iter_mut();
+		pub fn $event_name(data: Vec<$event_name::Data>, components: Vec<&Any>, mut_components: Vec<&Any>) {
+			let mut components_iter = components.iter();
+			let mut mut_components_iter = mut_components.iter();
 
 			$(
 				let $name : &Vec<$typ> = components_iter
@@ -132,7 +132,7 @@ macro_rules! on {
 			)*
 
 			$(
-				let $mut_name: &mut Vec<$mut_name> = components_iter
+				let $mut_name: &Vec<$mut_typ> = mut_components_iter
 					.next().expect("Event components list too short.")
 					.downcast_ref().expect("Event component not of expected type.");
 			)*
