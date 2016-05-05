@@ -13,7 +13,7 @@ pub mod my_event {
 system!( my_system {
 	state! { x: i64 }
 
-	on!( my_event, { positions: State }, {}) {
+	on!( my_event, { positions: State }, {}) self => {
 		self.x += 1;
 	}
 
