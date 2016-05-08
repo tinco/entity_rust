@@ -1,4 +1,5 @@
 use shared_mutex::{ SharedMutex };
+use std::any::{ Any, TypeId };
 use events;
 use uuid::Uuid;
 
@@ -7,6 +8,14 @@ use uuid::Uuid;
 pub struct Argument {
 	pub x: i64,
 	pub y: i64
+}
+
+type HandlerFn = Fn(Vec<Argument>, Vec<&Any>, Vec<&mut Any>);
+
+struct Handler<'a> {
+	handlerFn: &'a HandlerFn,
+	component_types: Vec<TypeId>,
+	mut_component_types: Vec<TypeId>
 }
 
 lazy_static! {

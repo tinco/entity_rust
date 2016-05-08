@@ -30,7 +30,7 @@
 ///  whether they mutate them or not.
 
 use std::collections::HashSet;
-use std::any::Any;
+use std::any::{ Any, TypeId };
 use shared_mutex::{ SharedMutex };
 
 pub mod example;
@@ -61,8 +61,54 @@ pub fn run_loop() {
 
 /// Defines an event.
 macro_rules! event {
-	() => ()
+	( $name:ident ) => (
+		pub mod $name {
+			use shared_mutex::{ SharedMutex };
+			use std::any::{ Any, TypeId };
+			use events;
+			use uuid::Uuid;
+
+			/// Example component
+			#[derive(PartialEq,Eq,Clone)]
+			pub struct Argument {
+				pub x: i64,
+				pub y: i64
+			}
+
+			pub type HandlerFn = Fn(Vec<Argument>, Vec<&Any>, Vec<&mut Any>) + Sync;
+
+			pub struct Handler {
+				handler_fn: &'static HandlerFn,
+				component_types: Vec<TypeId>,
+				mut_component_types: Vec<TypeId>
+			}
+
+			lazy_static! {
+				/// EVENT_UUID is used internally to index events, is randomly
+				/// generated at first access.
+				pub static ref EVENT_UUID: String = Uuid::new_v4().simple().to_string();
+				pub static ref HANDLERS: SharedMutex<Vec<Handler>> = SharedMutex::new(vec![]);
+			}
+
+			/// Listeners are a list of functions that should be called by trigger
+			pub fn trigger(argument: Argument) {
+				events::trigger_this_tick(&*EVENT_UUID, argument);
+			}
+
+			pub fn register_handler(handler_fn: &'static HandlerFn, component_types: Vec<TypeId>, mut_component_types: Vec<TypeId>) {
+				let mut handlers = HANDLERS.write().expect("Events HANDLERS mutex corrupted");
+				let handler = Handler {
+					handler_fn : handler_fn,
+					component_types : component_types.clone(),
+					mut_component_types : mut_component_types.clone()
+				};
+				handlers.push(handler);
+			}
+		}
+	)
 }
+
+event!(my_example_event);
 
 /// Queues an event to be dispatched.
 /// This means that the argument is put into the trigger queue for the

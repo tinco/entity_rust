@@ -28,6 +28,6 @@ pub mod my_system {
 	}
 
 	pub fn register() {
-		events::register_handler(event_name, vec![Position::type_id()], vec![Description::type_id()]);
+		register_handler(&*super::event_name::EVENT_UUID, &event_name, vec![Position::type_id()], vec![Description::type_id()]);
 	}
 }
