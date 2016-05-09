@@ -65,6 +65,7 @@ macro_rules! event {
 		pub mod $name {
 			use shared_mutex::{ SharedMutex };
 			use std::any::{ Any, TypeId };
+			use entity_rust::events;
 			use uuid::Uuid;
 
 			/// Example component
@@ -74,10 +75,10 @@ macro_rules! event {
 				pub y: i64
 			}
 
-			pub type HandlerFn = Fn(Vec<Argument>, Vec<&Any>, Vec<&mut Any>) + Sync;
+			pub type HandlerFn = fn(Vec<Argument>, Vec<&Any>, Vec<&mut Any>);
 
 			pub struct Handler {
-				handler_fn: &'static HandlerFn,
+				handler_fn: HandlerFn,
 				component_types: Vec<TypeId>,
 				mut_component_types: Vec<TypeId>
 			}
@@ -94,7 +95,7 @@ macro_rules! event {
 				events::trigger_this_tick(&*EVENT_UUID, argument);
 			}
 
-			pub fn register_handler(handler_fn: &'static HandlerFn, component_types: Vec<TypeId>, mut_component_types: Vec<TypeId>) {
+			pub fn register_handler(handler_fn: HandlerFn, component_types: Vec<TypeId>, mut_component_types: Vec<TypeId>) {
 				let mut handlers = HANDLERS.write().expect("Events HANDLERS mutex corrupted");
 				let handler = Handler {
 					handler_fn : handler_fn,
