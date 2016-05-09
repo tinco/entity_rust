@@ -59,13 +59,12 @@ pub fn run_loop() {
 
 }
 
-/// Defines an event.
+#[macro_export]
 macro_rules! event {
 	( $name:ident ) => (
 		pub mod $name {
 			use shared_mutex::{ SharedMutex };
 			use std::any::{ Any, TypeId };
-			use events;
 			use uuid::Uuid;
 
 			/// Example component
@@ -107,8 +106,6 @@ macro_rules! event {
 		}
 	)
 }
-
-event!(my_example_event);
 
 /// Queues an event to be dispatched.
 /// This means that the argument is put into the trigger queue for the
