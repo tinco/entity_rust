@@ -81,29 +81,37 @@ macro_rules! system_contents {
 				$event_name:ident, $($event_declaration:tt)*
 			) $_self:ident, $_data:ident => $event_body:block $($rest:tt)*
 		) [ 
-			$($event_decls:tt)* 
+			$( $saved_decl:ident ),* 
 		] 
 	) => (
 		on! { ($event_name, $( $event_declaration)* ) $_self , $_data => $event_body }
 
-		system_contents!{( $($rest)* ) [ ( $event_name, $($event_declaration)* ) , $($event_decls)* ] }
+		system_contents!{ 
+			( $($rest)* )
+			[ $event_name $(, $saved_decl)* ]
+		}
 	);
 
 	(
 		(
 			state! { $($state_declaration:tt)* } $($rest:tt)*
-		) [ $($event_decls:tt)* ] 
+		) [
+			$( $event_decl:ident ),*
+		] 
 	) => (
 		state! { $($state_declaration)* }
 
-		system_contents!{( $($rest)* ) [ $($event_decls)* ] }
+		system_contents!{
+			( $($rest)* )
+			[ $( $event_decl ),* ]
+		}
 	);
 
 	// When all content has been consumed emit register macro
 	(
-		() [ $($event_decls:tt)* ] 
+		() [ $($event_name:ident),* ] 
 	) => (
-		system_register!{ $($event_decls)* }
+		system_register!{ $( $event_name ),* }
 	)
 }
 
@@ -163,8 +171,11 @@ macro_rules! state {
 
 #[macro_export]
 macro_rules! system_register {
-	( $($event_decls:tt)* )=> (
+	( $( $event_name:ident ),* ) => (
 		pub fn register() {
+			$(
+				super::$event_name.register_handler($event_name)
+			)*
 		}
 	)
 }
