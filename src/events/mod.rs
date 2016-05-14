@@ -70,12 +70,12 @@ macro_rules! event {
 
 			/// Example component
 			#[derive(PartialEq,Eq,Clone)]
-			pub struct Argument {
+			pub struct Data {
 				pub x: i64,
 				pub y: i64
 			}
 
-			pub type HandlerFn = fn(Vec<Argument>, Vec<&Any>, Vec<&mut Any>);
+			pub type HandlerFn = fn(Vec<Data>, Vec<&Any>, Vec<&mut Any>);
 
 			pub struct Handler {
 				handler_fn: HandlerFn,
@@ -91,7 +91,7 @@ macro_rules! event {
 			}
 
 			/// Listeners are a list of functions that should be called by trigger
-			pub fn trigger(argument: Argument) {
+			pub fn trigger(argument: Data) {
 				events::trigger_this_tick(&*EVENT_UUID, argument);
 			}
 

@@ -81,14 +81,14 @@ macro_rules! system_contents {
 				$event_name:ident, $($event_declaration:tt)*
 			) $_self:ident, $_data:ident => $event_body:block $($rest:tt)*
 		) [ 
-			$( $saved_decl:ident ),* 
+			$( $saved_decl:tt ),*
 		] 
 	) => (
 		on! { ($event_name, $( $event_declaration)* ) $_self , $_data => $event_body }
 
 		system_contents!{ 
 			( $($rest)* )
-			[ $event_name $(, $saved_decl)* ]
+			[ ( $event_name, $( $event_declaration)* ) $(, $saved_decl)* ]
 		}
 	);
 
@@ -96,22 +96,22 @@ macro_rules! system_contents {
 		(
 			state! { $($state_declaration:tt)* } $($rest:tt)*
 		) [
-			$( $event_decl:ident ),*
+			$( $saved_decl:tt ),*
 		] 
 	) => (
 		state! { $($state_declaration)* }
 
 		system_contents!{
 			( $($rest)* )
-			[ $( $event_decl ),* ]
+			[ $( $saved_decl ),* ]
 		}
 	);
 
 	// When all content has been consumed emit register macro
 	(
-		() [ $($event_name:ident),* ] 
+		() [ $( $event_declaration:tt ),* ]
 	) => (
-		system_register!{ $( $event_name ),* }
+		system_register!{ $( $event_declaration ),* }
 	)
 }
 
@@ -171,10 +171,19 @@ macro_rules! state {
 
 #[macro_export]
 macro_rules! system_register {
-	( $( $event_name:ident ),* ) => (
+	( $( (
+			$event_name:ident,
+			{ $( $mut_name:ident : $mut_typ:ty )* } ,
+			{ $( $name:ident : $typ:ty )* }
+		)
+	),* ) => (
 		pub fn register() {
+			use std::any::TypeId;
 			$(
-				super::$event_name.register_handler($event_name)
+				use $event_name;
+				let mut_ts = vec![ $( TypeId::of::< $mut_typ >() ),* ];
+				let ts = vec![ $( TypeId::of::< $typ >() ),* ];
+				$event_name::register_handler($event_name, ts, mut_ts);
 			)*
 		}
 	)

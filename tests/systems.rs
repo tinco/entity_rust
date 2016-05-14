@@ -3,14 +3,11 @@ extern crate entity_rust;
 #[macro_use]
 extern crate lazy_static;
 extern crate shared_mutex;
+extern crate uuid;
 
 use std::any::Any;
 
-pub mod my_event {
-	pub struct Data {
-		pub x: i64
-	}
-}
+event!{ my_event }
 
 pub struct Position {
 	pub x: i64,
@@ -55,7 +52,7 @@ fn generates_state() {
 #[test]
 fn on_event_works() {
 	reset_state();
-	let data = vec![my_event::Data{ x: 1}];
+	let data = vec![my_event::Data{ x: 1, y: 2}];
 	let positions = &vec![Position{ x: 3, y: 5}] as &Any;
 	let components = vec![positions];
 	let mut_positions = &mut vec![Position{ x: 3, y: 5}] as &mut Any;
