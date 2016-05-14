@@ -7,7 +7,7 @@ extern crate uuid;
 
 use std::any::Any;
 
-event!{ my_event }
+event!{ my_event , x: i64, y: i64 }
 
 pub struct Position {
 	pub x: i64,

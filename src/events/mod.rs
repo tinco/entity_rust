@@ -61,7 +61,7 @@ pub fn run_loop() {
 
 #[macro_export]
 macro_rules! event {
-	( $name:ident ) => (
+	( $name:ident, $( $field_name:ident : $field_typ:ty ),* ) => (
 		pub mod $name {
 			use shared_mutex::{ SharedMutex };
 			use std::any::{ Any, TypeId };
@@ -71,8 +71,7 @@ macro_rules! event {
 			/// Example component
 			#[derive(PartialEq,Eq,Clone)]
 			pub struct Data {
-				pub x: i64,
-				pub y: i64
+				$(pub $field_name : $field_typ),*
 			}
 
 			pub type HandlerFn = fn(Vec<Data>, Vec<&Any>, Vec<&mut Any>);

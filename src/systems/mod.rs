@@ -157,10 +157,10 @@ macro_rules! on {
 
 #[macro_export]
 macro_rules! state {
-	( $( $name:ident : $field:ty )* ) => (
+	( $( $name:ident : $field:ty ),* ) => (
 		#[derive(Default)]
 		pub struct State {
-			pub $($name : $field),*
+			$(pub $name : $field),*
 		}
 
 		lazy_static! {

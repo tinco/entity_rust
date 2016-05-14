@@ -8,7 +8,7 @@ extern crate uuid;
 use entity_rust::events;
 use std::any::{ Any };
 
-event!(test_event);
+event!(test_event, x: i64, y: i64 );
 
 #[test]
 fn events_example_trigger() {
