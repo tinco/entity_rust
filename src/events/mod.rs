@@ -47,7 +47,9 @@ pub fn trigger_next_tick<T>(event_name: &String, data: T) where T: Any+'static+S
 // Runs a single iteration of the event system. Can be run in a loop to process events
 // continuously, but should be interleaved with `next_tick` to progress properly.
 pub fn run_events() {
-	// {
+	//let queues : Vec<(String, Any)>;
+	//{
+
 	//   Get (clone) the events for this tick
 	//   Clear the events
 	// }

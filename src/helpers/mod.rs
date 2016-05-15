@@ -2,7 +2,8 @@
 macro_rules! static_any_vec_map {
 	($v:ident, $t:ty) => {
 		pub mod $v {
-			use std::collections::HashMap;
+			use std::collections::{ HashMap };
+			use std::iter::FromIterator;
 			use std::any::Any;
 			use shared_mutex::{ SharedMutex, MappedSharedMutexReadGuard };
 
@@ -34,6 +35,11 @@ macro_rules! static_any_vec_map {
 				let mut casted_entry = &mut **entry as &mut Any;
 				let mut vec = casted_entry.downcast_mut::<Vec<T>>().expect("Could not cast created entry to Vec<T>");
 				vec.clear();
+			}
+
+			pub fn drain<'a>() -> Vec<($t, Box<Any+'static+Sync>)> {
+				let mut map = MAP.write().expect("Static MAP is not initialized.");
+				return Vec::from_iter(map.drain());
 			}
 		}
 	}
