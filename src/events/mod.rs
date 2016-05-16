@@ -22,9 +22,9 @@ use shared_mutex::{ SharedMutex };
 pub mod example;
 
 pub trait Handler {
-	fn run(&self, Vec<&Any>, Vec<&mut Any>);
-	fn component_types(&self) -> Vec<TypeId>;
-	fn mut_component_types(&self) -> Vec<TypeId>;
+	fn run(self, Vec<&Any>, Vec<&mut Any>);
+	fn component_types(self) -> Vec<TypeId>;
+	fn mut_component_types(self) -> Vec<TypeId>;
 }
 
 // The new events sets contain the events that have data in their queues so
@@ -104,20 +104,21 @@ macro_rules! event {
 				pub fn new(h: &Handler, d: Vec<Data>) -> HandlerInstance {
 					HandlerInstance {
 						handler_fn: h.handler_fn,
-						component_types: h.component_types,
-						mut_component_types: h.mut_component_types,
+						// TODO are these clones really necessary? would be cool if they could be static refs
+						component_types: h.component_types.clone(),
+						mut_component_types: h.mut_component_types.clone(),
 						data: d
 					}
 				}
 			}
 
 			impl events::Handler for HandlerInstance {
-				fn run(&self, components: Vec<&Any>, mut_components: Vec<&mut Any>) {
+				fn run(self, components: Vec<&Any>, mut_components: Vec<&mut Any>) {
 					(self.handler_fn)(self.data, components, mut_components) 
 				}
 
-				fn component_types(&self) -> Vec<TypeId> { self.component_types }
-				fn mut_component_types(&self) -> Vec<TypeId> { self.mut_component_types }
+				fn component_types(self) -> Vec<TypeId> { self.component_types }
+				fn mut_component_types(self) -> Vec<TypeId> { self.mut_component_types }
 			}
 
 			lazy_static! {
@@ -131,7 +132,7 @@ macro_rules! event {
 
 			/// Listeners are a list of functions that should be called by trigger
 			pub fn trigger(argument: Data) {
-				let data = THIS_TICK_DATA.write().expect("THIS_TICK_DATA mutex corrupted");
+				let mut data = THIS_TICK_DATA.write().expect("THIS_TICK_DATA mutex corrupted");
 				data.push(argument)
 			}
 
@@ -139,6 +140,7 @@ macro_rules! event {
 				let mut handlers = HANDLERS.write().expect("Events HANDLERS mutex corrupted");
 				let handler = Handler {
 					handler_fn : handler_fn,
+					// TODO are these clones really necessary? would be cool if they could be static refs
 					component_types : component_types.clone(),
 					mut_component_types : mut_component_types.clone()
 				};
@@ -148,8 +150,10 @@ macro_rules! event {
 			}
 
 			pub fn get_handler_instances() -> Vec<HandlerInstance> {
-				let data = THIS_TICK_DATA.write().expect("TICK DATA mutex corrupted").drain(..).collect();
-				HANDLERS.read().expect("HANDLERS mutex corrupted").iter().map(|h| HandlerInstance::new(h, data)).collect()
+				let mut data_old = THIS_TICK_DATA.write().expect("TICK DATA mutex corrupted");
+				let data : Vec<Data> = data_old.drain(..).collect();
+				//TODO eliminate this clone
+				HANDLERS.read().expect("HANDLERS mutex corrupted").iter().map(|h| HandlerInstance::new(h, data.clone())).collect()
 			}
 		}
 	)
