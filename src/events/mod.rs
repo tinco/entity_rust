@@ -34,12 +34,12 @@ lazy_static! {
 	pub static ref NEXT_TICK_NEW_EVENTS: SharedMutex<HashSet<String>> = SharedMutex::new(HashSet::new());
 }
 
-pub fn trigger_this_tick<T>(event_name: &String, data: T) where T: Any+'static+Sync {
+pub fn trigger_this_tick(event_name: &String) {
 	let mut new_events_set = THIS_TICK_NEW_EVENTS.write().expect("THIS_TICK_NEW_EVENTS mutex was corrupted.");
 	new_events_set.insert(event_name.clone());
 }
 
-pub fn trigger_next_tick<T>(event_name: &String, data: T) where T: Any+'static+Sync {
+pub fn trigger_next_tick(event_name: &String) {
 	let mut new_events_set = NEXT_TICK_NEW_EVENTS.write().expect("NEXT_TICK_NEW_EVENTS mutex was corrupted.");
 	new_events_set.insert(event_name.clone());
 }
@@ -134,6 +134,8 @@ macro_rules! event {
 			pub fn trigger(argument: Data) {
 				let mut data = THIS_TICK_DATA.write().expect("THIS_TICK_DATA mutex corrupted");
 				data.push(argument)
+
+				events::trigger_this_tick(*&EVENT_UUID);
 			}
 
 			pub fn register_handler(handler_fn: HandlerFn, component_types: Vec<TypeId>, mut_component_types: Vec<TypeId>) {
@@ -146,7 +148,7 @@ macro_rules! event {
 				};
 				handlers.push(handler);
 				// register event here
-				// events::register_event()
+				events::register_event(*&EVENT_UUID, &get_handler_instances)
 			}
 
 			pub fn get_handler_instances() -> Vec<HandlerInstance> {

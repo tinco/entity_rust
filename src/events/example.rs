@@ -28,6 +28,6 @@ lazy_static! {
 
 /// Listeners are a list of functions that should be called by trigger
 pub fn trigger(argument: Data) {
-	events::trigger_this_tick(&*EVENT_UUID, argument);
+	events::trigger_this_tick(&*EVENT_UUID);
 }
 
