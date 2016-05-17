@@ -13,7 +13,7 @@ pub struct Data {
 type HandlerFn = Fn(Vec<Data>, Vec<&Any>, Vec<&mut Any>);
 
 struct Handler<'a> {
-	handlerFn: &'a HandlerFn,
+	handler_fn: &'a HandlerFn,
 	component_types: Vec<TypeId>,
 	mut_component_types: Vec<TypeId>
 }

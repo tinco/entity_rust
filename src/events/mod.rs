@@ -15,7 +15,7 @@
 /// that is called by the trigger! macro that puts the event
 /// on the queue.
 ///
-use std::collections::HashSet;
+use std::collections::{ HashSet, HashMap };
 use std::any::{ Any, TypeId };
 use shared_mutex::{ SharedMutex };
 
@@ -27,11 +27,17 @@ pub trait Handler {
 	fn mut_component_types(self) -> Vec<TypeId>;
 }
 
+pub struct Event {
+	pub name: String,
+	pub get_handler_instances: fn () -> Vec<Box<Handler>>
+}
+
 // The new events sets contain the events that have data in their queues so
 // are ready to be ran.
 lazy_static! {
 	pub static ref THIS_TICK_NEW_EVENTS: SharedMutex<HashSet<String>> = SharedMutex::new(HashSet::new());
 	pub static ref NEXT_TICK_NEW_EVENTS: SharedMutex<HashSet<String>> = SharedMutex::new(HashSet::new());
+	pub static ref REGISTERED_EVENTS: SharedMutex<HashMap<String, Event>> = SharedMutex::new(HashMap::new());
 }
 
 pub fn trigger_this_tick(event_name: &String) {
@@ -42,6 +48,11 @@ pub fn trigger_this_tick(event_name: &String) {
 pub fn trigger_next_tick(event_name: &String) {
 	let mut new_events_set = NEXT_TICK_NEW_EVENTS.write().expect("NEXT_TICK_NEW_EVENTS mutex was corrupted.");
 	new_events_set.insert(event_name.clone());
+}
+
+pub fn register_event(event : Event) {
+	let mut events = REGISTERED_EVENTS.write().expect("REGISTERED_EVENTS mutex was corrupted.");
+	events.insert(event.name.clone(), event);
 }
 
 // Runs a single iteration of the event system. Can be run in a loop to process events
@@ -133,9 +144,9 @@ macro_rules! event {
 			/// Listeners are a list of functions that should be called by trigger
 			pub fn trigger(argument: Data) {
 				let mut data = THIS_TICK_DATA.write().expect("THIS_TICK_DATA mutex corrupted");
-				data.push(argument)
+				data.push(argument);
 
-				events::trigger_this_tick(*&EVENT_UUID);
+				events::trigger_this_tick(&*EVENT_UUID);
 			}
 
 			pub fn register_handler(handler_fn: HandlerFn, component_types: Vec<TypeId>, mut_component_types: Vec<TypeId>) {
@@ -147,15 +158,24 @@ macro_rules! event {
 					mut_component_types : mut_component_types.clone()
 				};
 				handlers.push(handler);
-				// register event here
-				events::register_event(*&EVENT_UUID, &get_handler_instances)
+
+				let event = events::Event {
+					name: (&*EVENT_UUID).clone(),
+					get_handler_instances: get_handler_instances
+				};
+
+				events::register_event(event)
 			}
 
-			pub fn get_handler_instances() -> Vec<HandlerInstance> {
+			pub fn get_handler_instances() -> Vec<Box<events::Handler>> {
 				let mut data_old = THIS_TICK_DATA.write().expect("TICK DATA mutex corrupted");
 				let data : Vec<Data> = data_old.drain(..).collect();
-				//TODO eliminate this clone
-				HANDLERS.read().expect("HANDLERS mutex corrupted").iter().map(|h| HandlerInstance::new(h, data.clone())).collect()
+
+				let handlers_lock = HANDLERS.read().expect("HANDLERS mutex corrupted");
+				handlers_lock.iter().map(|h|
+					//TODO eliminate this data.clone
+					Box::new(HandlerInstance::new(h, data.clone())) as Box<events::Handler>
+				).collect()
 			}
 		}
 	)
