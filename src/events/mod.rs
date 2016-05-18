@@ -27,6 +27,7 @@ pub trait Handler {
 	fn mut_component_types(self) -> Vec<TypeId>;
 }
 
+#[derive(Clone)]
 pub struct Event {
 	pub name: String,
 	pub get_handler_instances: fn () -> Vec<Box<Handler>>
@@ -58,10 +59,18 @@ pub fn register_event(event : Event) {
 // Runs a single iteration of the event system. Can be run in a loop to process events
 // continuously, but should be interleaved with `next_tick` to progress properly.
 pub fn run_events() {
-	//{
-	//   Get (clone) the events for this tick
-	//   Clear the events
-	// }
+	let events = {
+		let event_names = {
+			let mut event_names_lock = THIS_TICK_NEW_EVENTS.write().expect("THIS_TICK_NEW_EVENTS mutex was corrupted");
+			event_names_lock.drain().collect()
+		};
+
+		let events_lock = REGISTERED_EVENTS.read().expect("REGISTERED_EVENTS mutex was corrupted");
+
+		event_names.iter().map(|n|
+			events_lock.get(&*n).cloned().expect("Unknown event triggered")
+		)
+	};
 	// Then we get the handlers for the ticks
 	// for each handler
 	// {
