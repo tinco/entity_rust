@@ -59,18 +59,19 @@ pub fn register_event(event : Event) {
 // Runs a single iteration of the event system. Can be run in a loop to process events
 // continuously, but should be interleaved with `next_tick` to progress properly.
 pub fn run_events() {
-	let events = {
-		let event_names = {
+	let events : Vec<Event>;
+	{
+		let event_names : Vec<String>;
+		{
 			let mut event_names_lock = THIS_TICK_NEW_EVENTS.write().expect("THIS_TICK_NEW_EVENTS mutex was corrupted");
-			event_names_lock.drain().collect()
-		};
+			event_names = event_names_lock.drain().collect();
+		}
 
 		let events_lock = REGISTERED_EVENTS.read().expect("REGISTERED_EVENTS mutex was corrupted");
-
-		event_names.iter().map(|n|
+		events = event_names.iter().map(|n|
 			events_lock.get(&*n).cloned().expect("Unknown event triggered")
-		)
-	};
+		).collect();
+	}
 	// Then we get the handlers for the ticks
 	// for each handler
 	// {
