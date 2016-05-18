@@ -23,8 +23,8 @@ pub mod example;
 
 pub trait Handler {
 	fn run(self, Vec<&Any>, Vec<&mut Any>);
-	fn component_types(self) -> Vec<TypeId>;
-	fn mut_component_types(self) -> Vec<TypeId>;
+	fn component_types(&self) -> Vec<TypeId>;
+	fn mut_component_types(&self) -> Vec<TypeId>;
 }
 
 #[derive(Clone)]
@@ -72,12 +72,17 @@ pub fn run_events() {
 			events_lock.get(&*n).cloned().expect("Unknown event triggered")
 		).collect();
 	}
-	// Then we get the handlers for the ticks
-	// for each handler
-	// {
-	//  	we obtain the correct component locks
-	// 		we run the handlers
-	// }
+
+	let handlers = events.iter().flat_map(|e| (e.get_handler_instances)() );
+
+	// TODO sort and parellize handler invocations
+	for handler in handlers {
+		let component_types = handler.component_types();
+		let mut_component_types = handler.mut_component_types();
+
+		// we obtain the correct component locks
+		// we run the handlers
+	}
 }
 
 // Progresses the system to the next tick.
@@ -138,8 +143,8 @@ macro_rules! event {
 					(self.handler_fn)(self.data, components, mut_components) 
 				}
 
-				fn component_types(self) -> Vec<TypeId> { self.component_types }
-				fn mut_component_types(self) -> Vec<TypeId> { self.mut_component_types }
+				fn component_types(&self) -> Vec<TypeId> { self.component_types.clone() }
+				fn mut_component_types(&self) -> Vec<TypeId> { self.mut_component_types.clone() }
 			}
 
 			lazy_static! {
