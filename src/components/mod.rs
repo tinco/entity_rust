@@ -9,8 +9,30 @@
 /// component! { physics, body: physics.RigidBody, physics_id: physics.ID }
 ///
 
+use std::collections::{ HashSet, HashMap };
+use std::any::{ Any, TypeId };
+use shared_mutex::{ SharedMutex };
 
 pub mod example;
+
+#[derive(Clone)]
+pub struct Component {
+	pub name: TypeId,
+	pub get_component_list: fn () -> Box<Any>
+}
+
+lazy_static! {
+	pub static ref COMPONENTS: SharedMutex<HashMap<TypeId, Component>> = SharedMutex::new(HashMap::new());
+}
+
+pub fn register(component : Component) {
+	let mut components = COMPONENTS.write().expect("COMPONENTS lock corrupted");
+	components.insert(component.name, component);
+}
+
+pub fn get_component_mutex<T>(id : TypeId) -> T {
+
+}
 
 #[macro_export]
 macro_rules! component {
