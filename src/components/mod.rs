@@ -36,6 +36,14 @@ pub fn get_components_lock<'mutex, T>(id : TypeId) -> SharedMutexReadGuard<'mute
 	return component_list.read().expect("Component LIST lock corrupted"); 
 }
 
+pub fn get_components_lock_mut<'mutex, T>(id : TypeId) -> SharedMutexWriteGuard<'mutex, T> where T : Any {
+	let components = COMPONENTS.read().expect("COMPONENTS lock corrupted");
+	let component = components.get(&id).expect("Unknown component type requested");
+	let component_list_any = (component.get_component_list)();
+	let component_list : &'static SharedMutex<T> = *component_list_any.downcast_ref().expect("Invalid type for components list");
+	return component_list.write().expect("Component LIST lock corrupted"); 
+}
+
 #[macro_export]
 macro_rules! component {
 	( $component_name:ident , $( $name:ident : $field:ty ),* ) => (
