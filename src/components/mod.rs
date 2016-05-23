@@ -28,7 +28,7 @@ pub fn register(component : Component) {
 	components.insert(component.name, component);
 }
 
-pub fn get_components_lock<'mutex, T>(id : TypeId) -> SharedMutexReadGuard<'mutex, T> where T : 'static {
+pub fn get_components_lock<'mutex, T>(id : TypeId) -> SharedMutexReadGuard<'mutex, T> where T : Any {
 	let components = COMPONENTS.read().expect("COMPONENTS lock corrupted");
 	let component = components.get(&id).expect("Unknown component type requested");
 	let component_list_any = (component.get_component_list)();
