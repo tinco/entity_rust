@@ -19,10 +19,12 @@ use std::collections::{ HashSet, HashMap };
 use std::any::{ Any, TypeId };
 use shared_mutex::{ SharedMutex };
 
+use components;
+
 pub mod example;
 
 pub trait Handler {
-	fn run(self, Vec<&Any>, Vec<&mut Any>);
+	fn run(&self, Vec<&Any>, Vec<&mut Any>);
 	fn component_types(&self) -> Vec<TypeId>;
 	fn mut_component_types(&self) -> Vec<TypeId>;
 }
@@ -80,8 +82,16 @@ pub fn run_events() {
 		let component_types = handler.component_types();
 		let mut_component_types = handler.mut_component_types();
 
+		let mut locks : Vec<&Any>= vec![];
+		let mut mut_locks : Vec<&mut Any>= vec![];
+
 		// we obtain the correct component locks
+		for typ in component_types {
+			//locks.push(components::get_components_lock(typ));
+		}
+		
 		// we run the handlers
+		handler.run(locks, mut_locks)
 	}
 }
 
@@ -111,7 +121,7 @@ macro_rules! event {
 				$(pub $field_name : $field_typ),*
 			}
 
-			pub type HandlerFn = fn(Vec<Data>, Vec<&Any>, Vec<&mut Any>);
+			pub type HandlerFn = fn(&Vec<Data>, Vec<&Any>, Vec<&mut Any>);
 
 			pub struct Handler {
 				handler_fn: HandlerFn,
@@ -139,8 +149,10 @@ macro_rules! event {
 			}
 
 			impl events::Handler for HandlerInstance {
-				fn run(self, components: Vec<&Any>, mut_components: Vec<&mut Any>) {
-					(self.handler_fn)(self.data, components, mut_components) 
+				fn run(&self, components: Vec<&Any>, mut_components: Vec<&mut Any>) {
+					let handler_fn = self.handler_fn;
+					let data = &self.data;
+					handler_fn(data, components, mut_components) 
 				}
 
 				fn component_types(&self) -> Vec<TypeId> { self.component_types.clone() }

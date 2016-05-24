@@ -21,7 +21,7 @@ fn events_example_trigger() {
 	*/
 }
 
-pub fn test_handler(arg : Vec<test_event::Data>, cs: Vec<&Any>, mut_cs: Vec<&mut Any>) {
+pub fn test_handler(arg : &Vec<test_event::Data>, cs: Vec<&Any>, mut_cs: Vec<&mut Any>) {
 	println!("Test");
 }
 

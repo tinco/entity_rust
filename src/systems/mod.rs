@@ -124,13 +124,13 @@ macro_rules! on {
 
 		impl State {
 			pub fn $event_name(&mut $_self,
-				$_data: Vec<$event_name::Data>,
+				$_data: &Vec<$event_name::Data>,
 				$( $name : &Vec<$typ>),*
 				$( $mut_name : &Vec<$mut_typ> ),* ) $event_body
 
 		}
 
-		pub fn $event_name(data: Vec<$event_name::Data>, components: Vec<&Any>, mut mut_components: Vec<&mut Any>) {
+		pub fn $event_name(data: &Vec<$event_name::Data>, components: Vec<&Any>, mut mut_components: Vec<&mut Any>) {
 			let mut components_iter = components.iter();
 			let mut mut_components_iter = mut_components.iter_mut();
 

@@ -58,7 +58,7 @@ fn on_event_works() {
 	let mut_positions = &mut vec![Position{ x: 3, y: 5}] as &mut Any;
 	let mut mut_components = vec![mut_positions];
 
-	my_system::my_event(data, components, mut_components);
+	my_system::my_event(&data, components, mut_components);
 
 	let state = my_system::state.read().expect("System state corrupted");
 	assert!(state.x == 4);

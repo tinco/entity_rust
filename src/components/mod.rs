@@ -28,6 +28,7 @@ pub fn register(component : Component) {
 	components.insert(component.name, component);
 }
 
+/*
 pub fn get_components_lock<'mutex, T>(id : TypeId) -> SharedMutexReadGuard<'mutex, T> where T : Any {
 	let components = COMPONENTS.read().expect("COMPONENTS lock corrupted");
 	let component = components.get(&id).expect("Unknown component type requested");
@@ -43,6 +44,7 @@ pub fn get_components_lock_mut<'mutex, T>(id : TypeId) -> SharedMutexWriteGuard<
 	let component_list : &'static SharedMutex<T> = *component_list_any.downcast_ref().expect("Invalid type for components list");
 	return component_list.write().expect("Component LIST lock corrupted"); 
 }
+*/
 
 #[macro_export]
 macro_rules! component {
