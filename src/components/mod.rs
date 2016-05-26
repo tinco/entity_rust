@@ -16,7 +16,7 @@ pub mod example;
 #[derive(Clone)]
 pub struct Component {
 	pub name: TypeId,
-	pub get_component_list: fn () -> Box<Any + 'static>
+	pub get_component_list: fn () -> &'static Any
 }
 
 lazy_static! {
@@ -61,7 +61,7 @@ macro_rules! component {
 			use shared_mutex::{ SharedMutex, SharedMutexWriteGuard };
 			use entity_rust::entities::{ ComponentList, EntityID };
 			use entity_rust::components;
-			use std::any::{ TypeId };
+			use std::any::{ Any, TypeId };
 
 
 			#[derive(Default)]
@@ -78,7 +78,7 @@ macro_rules! component {
 				list.push((entity,c));
 			}
 
-			pub fn get_list() -> &'static SharedMutex<ComponentList<Component>> {
+			pub fn get_list() -> &'static Any {
 				return &LIST;
 			}
 

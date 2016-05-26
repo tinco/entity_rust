@@ -34,6 +34,7 @@ use std::any::{ TypeId };
 #[test]
 fn gettable_lock() {
 	let type_id = TypeId::of::<test_component::Component>();
+	test_component::register();
 
 	let cs = components::get_components_lock(type_id);
 }
