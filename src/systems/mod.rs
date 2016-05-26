@@ -121,12 +121,15 @@ macro_rules! on {
 		$_self:ident, $_data:ident => $event_body:block ) => (
 
 		use super::$event_name;
+		use entity_rust::entities::{ ComponentList };
+		use shared_mutex::{ SharedMutexReadGuard, SharedMutexWriteGuard };
+
 
 		impl State {
 			pub fn $event_name(&mut $_self,
 				$_data: &Vec<$event_name::Data>,
-				$( $name : &Vec<$typ>),*
-				$( $mut_name : &Vec<$mut_typ> ),* ) $event_body
+				$( $name : &ComponentList<$typ>),*
+				$( $mut_name : &ComponentList<$mut_typ> ),* ) $event_body
 
 		}
 
@@ -135,13 +138,13 @@ macro_rules! on {
 			let mut mut_components_iter = mut_components.iter_mut();
 
 			$(
-				let $name : &Vec<$typ> = components_iter
+				let $name : &SharedMutexReadGuard<ComponentList<$typ>> = components_iter
 					.next().expect("Event components list too short.")
 					.downcast_ref().expect("Event component not of expected type.");
 			)*
 
 			$(
-				let $mut_name: &mut Vec<$mut_typ> = mut_components_iter
+				let $mut_name: &mut SharedMutexWriteGuard<ComponentList<$mut_typ>> = mut_components_iter
 					.next().expect("Event mut_components list too short.")
 					.downcast_mut().expect("Event component not of expected type.");
 			)*

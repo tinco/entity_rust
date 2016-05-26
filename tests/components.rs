@@ -27,3 +27,13 @@ fn generates_functions() {
 		assert!(component.1.a == 2);
 	}
 }
+
+use entity_rust::components;
+
+#[test]
+fn gettable_lock() {
+	use std::any::{ TypeId };
+
+	let type_id = TypeId::of::<test_component::Component>();
+	let cs = components::get_components_lock(type_id);
+}

@@ -19,7 +19,7 @@ system!( my_system {
 
 	on!( my_event, { positions: super::Position }, {}) self, data => {
 		self.x += data[0].x;
-		self.x += positions[0].x;
+		self.x += positions[0].1.x;
 	}
 });
 
