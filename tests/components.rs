@@ -29,11 +29,11 @@ fn generates_functions() {
 }
 
 use entity_rust::components;
+use std::any::{ TypeId };
 
 #[test]
 fn gettable_lock() {
-	use std::any::{ TypeId };
-
 	let type_id = TypeId::of::<test_component::Component>();
+
 	let cs = components::get_components_lock(type_id);
 }

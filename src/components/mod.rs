@@ -60,6 +60,9 @@ macro_rules! component {
 		pub mod $component_name {
 			use shared_mutex::{ SharedMutex, SharedMutexWriteGuard };
 			use entity_rust::entities::{ ComponentList, EntityID };
+			use entity_rust::components;
+			use std::any::{ TypeId };
+
 
 			#[derive(Default)]
 			pub struct Component {
@@ -73,6 +76,20 @@ macro_rules! component {
 			pub fn create(mut list: SharedMutexWriteGuard<ComponentList<Component>>, entity: EntityID, $($name : $field),*) {
 				let c = Component { $($name : $name),* };
 				list.push((entity,c));
+			}
+
+			pub fn get_list() -> &'static SharedMutex<ComponentList<Component>> {
+				return &LIST;
+			}
+
+			pub fn register() {
+				let type_id = TypeId::of::<Component>();
+				let component_entry = components::Component {
+					name : type_id,
+					get_component_list : get_list
+				};
+
+				components::register(component_entry)
 			}
 		}
 	)
