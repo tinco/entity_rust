@@ -58,7 +58,7 @@ pub fn get_components_lock_mut<'mutex, T>(id : TypeId) -> SharedMutexWriteGuard<
 macro_rules! component {
 	( $component_name:ident , $( $name:ident : $field:ty ),* ) => (
 		pub mod $component_name {
-			use shared_mutex::{ SharedMutex, SharedMutexWriteGuard };
+			use shared_mutex::{ SharedMutex, SharedMutexWriteGuard, MappedSharedMutexReadGuard };
 			use entity_rust::entities::{ ComponentList, EntityID };
 			use entity_rust::components;
 			use std::any::{ Any, TypeId };
@@ -80,6 +80,11 @@ macro_rules! component {
 
 			pub fn get_list() -> &'static Any {
 				return &LIST;
+			}
+
+			pub fn get_read_lock<'mutex>() -> MappedSharedMutexReadGuard<'mutex, Any>{
+				let lock = LIST.read().expect("LIST lock corrupted");
+				return lock.into_mapped().map(|v| v)
 			}
 
 			pub fn register() {
