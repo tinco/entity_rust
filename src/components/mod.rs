@@ -9,14 +9,19 @@
 
 use std::collections::{ HashSet, HashMap };
 use std::any::{ Any, TypeId };
-use shared_mutex::{ SharedMutex, SharedMutexReadGuard, SharedMutexWriteGuard };
+use shared_mutex::{ SharedMutex, SharedMutexReadGuard, SharedMutexWriteGuard, MappedSharedMutexReadGuard };
 
 pub mod example;
+
+trait MappedSharedMutexGetters {
+	pub fn read_as_any() -> MappedSharedMutexReadGuard<'mutex, Any>;
+	pub fn write_as_any() -> MappedSharedMutexWriteGuard<'mutex, Any>;
+}
 
 #[derive(Clone)]
 pub struct Component {
 	pub name: TypeId,
-	pub get_component_list: fn () -> &'static Any
+	pub getters: Box<MappedSharedMutexGetters>
 }
 
 lazy_static! {
@@ -28,37 +33,18 @@ pub fn register(component : Component) {
 	components.insert(component.name, component);
 }
 
-pub fn get_components_lock<'mutex>(id : TypeId) -> SharedMutexReadGuard<'mutex, Any> {
+pub fn get_components_lock<'mutex>(id : TypeId) -> MappedSharedMutexReadGuard<'mutex, Any> {
 	let components = COMPONENTS.read().expect("COMPONENTS lock corrupted");
 	let component = components.get(&id).expect("Unknown component type requested");
-	let component_list_any = (component.get_component_list)();
-	let component_list : &'static SharedMutex<Any> = *component_list_any.downcast_ref().expect("Invalid type for components list");
-	return component_list.read().expect("Component LIST lock corrupted"); 
+	let list = (component.list_getter)();
+	list.read()
 }
-
-/*
-pub fn get_components_lock<'mutex, T>(id : TypeId) -> SharedMutexReadGuard<'mutex, T> where T : Any {
-	let components = COMPONENTS.read().expect("COMPONENTS lock corrupted");
-	let component = components.get(&id).expect("Unknown component type requested");
-	let component_list_any = (component.get_component_list)();
-	let component_list : &'static SharedMutex<T> = *component_list_any.downcast_ref().expect("Invalid type for components list");
-	return component_list.read().expect("Component LIST lock corrupted"); 
-}
-
-pub fn get_components_lock_mut<'mutex, T>(id : TypeId) -> SharedMutexWriteGuard<'mutex, T> where T : Any {
-	let components = COMPONENTS.read().expect("COMPONENTS lock corrupted");
-	let component = components.get(&id).expect("Unknown component type requested");
-	let component_list_any = (component.get_component_list)();
-	let component_list : &'static SharedMutex<T> = *component_list_any.downcast_ref().expect("Invalid type for components list");
-	return component_list.write().expect("Component LIST lock corrupted"); 
-}
-*/
 
 #[macro_export]
 macro_rules! component {
 	( $component_name:ident , $( $name:ident : $field:ty ),* ) => (
 		pub mod $component_name {
-			use shared_mutex::{ SharedMutex, SharedMutexWriteGuard, MappedSharedMutexReadGuard };
+			use shared_mutex::{ SharedMutex, SharedMutexWriteGuard, SharedMutexReadGuard };
 			use entity_rust::entities::{ ComponentList, EntityID };
 			use entity_rust::components;
 			use std::any::{ Any, TypeId };
@@ -67,6 +53,10 @@ macro_rules! component {
 			#[derive(Default)]
 			pub struct Component {
 				pub $($name : $field),*
+			}
+
+			pub struct ListContainer {
+				pub list: &'static SharedMutex<ComponentList<Component>>
 			}
 
 			lazy_static! {
@@ -78,13 +68,9 @@ macro_rules! component {
 				list.push((entity,c));
 			}
 
-			pub fn get_list() -> &'static Any {
-				return &LIST;
-			}
-
-			pub fn get_read_lock<'mutex>() -> MappedSharedMutexReadGuard<'mutex, Any>{
-				let lock = LIST.read().expect("LIST lock corrupted");
-				return lock.into_mapped().map(|v| v)
+			pub fn get_list_as_any() -> MappedSharedMutexReadGuard<Any> {
+				let list = LIST.read().expect("COMPONENT_LIST corrupted");
+				let result = list.into_mapped() {}
 			}
 
 			pub fn register() {
