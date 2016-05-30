@@ -9,19 +9,18 @@
 
 use std::collections::{ HashSet, HashMap };
 use std::any::{ Any, TypeId };
-use shared_mutex::{ SharedMutex, SharedMutexReadGuard, SharedMutexWriteGuard, MappedSharedMutexReadGuard };
+use shared_mutex::{ SharedMutex, SharedMutexReadGuard, SharedMutexWriteGuard, MappedSharedMutexReadGuard, MappedSharedMutexWriteGuard };
 
 pub mod example;
 
-trait MappedSharedMutexGetters {
-	pub fn read_as_any() -> MappedSharedMutexReadGuard<'mutex, Any>;
-	pub fn write_as_any() -> MappedSharedMutexWriteGuard<'mutex, Any>;
+pub trait MappedSharedMutexGetters {
+	fn read_as_any<'mutex>(&self) -> MappedSharedMutexReadGuard<'mutex, Any>;
+	fn write_as_any<'mutex>(&self) -> MappedSharedMutexWriteGuard<'mutex, Any>;
 }
 
-#[derive(Clone)]
 pub struct Component {
 	pub name: TypeId,
-	pub getters: Box<MappedSharedMutexGetters>
+	pub getters: Box<MappedSharedMutexGetters+Sync>
 }
 
 lazy_static! {
@@ -36,8 +35,7 @@ pub fn register(component : Component) {
 pub fn get_components_lock<'mutex>(id : TypeId) -> MappedSharedMutexReadGuard<'mutex, Any> {
 	let components = COMPONENTS.read().expect("COMPONENTS lock corrupted");
 	let component = components.get(&id).expect("Unknown component type requested");
-	let list = (component.list_getter)();
-	list.read()
+	component.getters.read_as_any()
 }
 
 #[macro_export]
