@@ -33,10 +33,16 @@ pub fn register(component : Component) {
 	components.insert(component.name, component);
 }
 
-pub fn get_components_lock<'mutex>(id : TypeId) -> MappedSharedMutexReadGuard<'mutex, Any> {
+pub fn get_components_read_lock<'mutex>(id : TypeId) -> MappedSharedMutexReadGuard<'mutex, Any> {
 	let components = COMPONENTS.read().expect("COMPONENTS lock corrupted");
 	let component = components.get(&id).expect("Unknown component type requested");
 	component.getters.read_as_any()
+}
+
+pub fn get_components_write_lock<'mutex>(id : TypeId) -> MappedSharedMutexWriteGuard<'mutex, Any> {
+	let components = COMPONENTS.read().expect("COMPONENTS lock corrupted");
+	let component = components.get(&id).expect("Unknown component type requested");
+	component.getters.write_as_any()
 }
 
 #[macro_export]
@@ -71,7 +77,7 @@ macro_rules! component {
 				pub static ref LIST: SharedMutex<ComponentList<Component>> = SharedMutex::new(Vec::new());
 			}
 
-			pub fn create(mut list: SharedMutexWriteGuard<ComponentList<Component>>, entity: EntityID, $($name : $field),*) {
+			pub fn create(mut list: MappedSharedMutexWriteGuard<ComponentList<Component>>, entity: EntityID, $($name : $field),*) {
 				let c = Component { $($name : $name),* };
 				list.push((entity,c));
 			}

@@ -15,7 +15,7 @@ fn reset_state() {
 fn generates_functions() {
 	reset_state();
 	{
-		let components = test_component::LIST.write().expect("Component lock corrupted.");
+		let components = test_component::LIST.write().expect("Component lock corrupted.").into_mapped();
 		test_component::create(components, 1, 2, 3);
 	}
 	{
@@ -33,8 +33,14 @@ use std::any::{ TypeId };
 
 #[test]
 fn gettable_lock() {
+	reset_state();
 	let type_id = TypeId::of::<test_component::Component>();
 	test_component::register();
 
-	let cs = components::get_components_lock(type_id);
+	let cs = components::get_components_write_lock(type_id);
+	let components = cs.map(|v|
+		v.downcast_mut::<entity_rust::entities::ComponentList<test_component::Component>>()
+			.expect("Components mutex was not of expected type")
+	);
+	test_component::create(components, 1, 2, 3);
 }
