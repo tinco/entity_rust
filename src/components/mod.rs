@@ -8,6 +8,7 @@
 ///
 
 use std::collections::{ HashSet, HashMap };
+//use std::ops::CoerceUnsized;
 use std::any::{ Any, TypeId };
 use shared_mutex::{ SharedMutex, SharedMutexReadGuard, SharedMutexWriteGuard, MappedSharedMutexReadGuard, MappedSharedMutexWriteGuard };
 
@@ -42,7 +43,7 @@ pub fn get_components_lock<'mutex>(id : TypeId) -> MappedSharedMutexReadGuard<'m
 macro_rules! component {
 	( $component_name:ident , $( $name:ident : $field:ty ),* ) => (
 		pub mod $component_name {
-			use shared_mutex::{ SharedMutex, SharedMutexWriteGuard, SharedMutexReadGuard };
+			use shared_mutex::{ SharedMutex, SharedMutexWriteGuard, SharedMutexReadGuard, MappedSharedMutexReadGuard, MappedSharedMutexWriteGuard };
 			use entity_rust::entities::{ ComponentList, EntityID };
 			use entity_rust::components;
 			use std::any::{ Any, TypeId };
@@ -53,8 +54,17 @@ macro_rules! component {
 				pub $($name : $field),*
 			}
 
-			pub struct ListContainer {
-				pub list: &'static SharedMutex<ComponentList<Component>>
+			pub struct ListGetters;
+
+			impl components::MappedSharedMutexGetters for ListGetters {
+				fn read_as_any<'mutex>(&self) -> MappedSharedMutexReadGuard<'mutex, Any> {
+					let list = LIST.read().expect("COMPONENT_LIST corrupted");
+					list.into_mapped().map(|v| v as &Any)
+				}
+				fn write_as_any<'mutex>(&self) -> MappedSharedMutexWriteGuard<'mutex, Any> {
+					let mut list = LIST.write().expect("COMPONENT_LIST corrupted");
+					list.into_mapped().map(|v| v as &mut Any)
+				}
 			}
 
 			lazy_static! {
@@ -66,19 +76,14 @@ macro_rules! component {
 				list.push((entity,c));
 			}
 
-			pub fn get_list_as_any() -> MappedSharedMutexReadGuard<Any> {
-				let list = LIST.read().expect("COMPONENT_LIST corrupted");
-				let result = list.into_mapped() {}
-			}
-
 			pub fn register() {
 				let type_id = TypeId::of::<Component>();
-				let component_entry = components::Component {
+				/*let component_entry = components::Component {
 					name : type_id,
 					get_component_list : get_list
 				};
 
-				components::register(component_entry)
+				components::register(component_entry)*/
 			}
 		}
 	)

@@ -33,5 +33,6 @@ plugin = true
 
 [dependencies]
 lazy_static = "0.1.15"
-shared-mutex = "0.2"
+# shared-mutex = "0.2"
+shared-mutex = { git = "https://github.com/tinco/rust-shared-mutex.git" }
 uuid = { version = "0.2", features = ["v4"] }
