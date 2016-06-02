@@ -78,12 +78,12 @@ macro_rules! component {
 
 			pub fn register() {
 				let type_id = TypeId::of::<Component>();
-				/*let component_entry = components::Component {
+				let component_entry = components::Component {
 					name : type_id,
-					get_component_list : get_list
+					getters : Box::new(ListGetters)
 				};
 
-				components::register(component_entry)*/
+				components::register(component_entry);
 			}
 		}
 	)

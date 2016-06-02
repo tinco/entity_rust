@@ -49,6 +49,7 @@ fn generates_state() {
 	}
 }
 
+/*
 #[test]
 fn on_event_works() {
 	reset_state();
@@ -63,3 +64,4 @@ fn on_event_works() {
 	let state = my_system::state.read().expect("System state corrupted");
 	assert!(state.x == 4);
 }
+*/
