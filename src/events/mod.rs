@@ -17,14 +17,14 @@
 ///
 use std::collections::{ HashSet, HashMap };
 use std::any::{ Any, TypeId };
-use shared_mutex::{ SharedMutex };
+use shared_mutex::{ SharedMutex, MappedSharedMutexReadGuard, MappedSharedMutexWriteGuard };
 
 use components;
 
 pub mod example;
 
 pub trait Handler {
-	fn run(&self, Vec<&Any>, Vec<&mut Any>);
+	fn run(&self, Vec<MappedSharedMutexReadGuard<Any>>, Vec<MappedSharedMutexWriteGuard<Any>>);
 	fn component_types(&self) -> Vec<TypeId>;
 	fn mut_component_types(&self) -> Vec<TypeId>;
 }
@@ -82,12 +82,15 @@ pub fn run_events() {
 		let component_types = handler.component_types();
 		let mut_component_types = handler.mut_component_types();
 
-		let mut locks : Vec<&Any>= vec![];
-		let mut mut_locks : Vec<&mut Any>= vec![];
+		let mut locks : Vec<MappedSharedMutexReadGuard<Any>>= vec![];
+		let mut mut_locks : Vec<MappedSharedMutexWriteGuard<Any>>= vec![];
 
 		// we obtain the correct component locks
 		for typ in component_types {
-			//locks.push(components::get_components_lock(typ));
+			locks.push(components::get_components_read_lock(typ));
+		}
+		for typ in mut_component_types {
+			mut_locks.push(components::get_components_write_lock(typ));
 		}
 		
 		// we run the handlers
@@ -110,7 +113,7 @@ pub fn next_tick() {
 macro_rules! event {
 	( $name:ident, $( $field_name:ident : $field_typ:ty ),* ) => (
 		pub mod $name {
-			use shared_mutex::{ SharedMutex };
+			use shared_mutex::{ SharedMutex, MappedSharedMutexWriteGuard, MappedSharedMutexReadGuard };
 			use std::any::{ Any, TypeId };
 			use entity_rust::events;
 			use uuid::Uuid;
@@ -121,7 +124,7 @@ macro_rules! event {
 				$(pub $field_name : $field_typ),*
 			}
 
-			pub type HandlerFn = fn(&Vec<Data>, Vec<&Any>, Vec<&mut Any>);
+			pub type HandlerFn = fn(&Vec<Data>, Vec<MappedSharedMutexReadGuard<Any>>, Vec<MappedSharedMutexWriteGuard<Any>>);
 
 			pub struct Handler {
 				handler_fn: HandlerFn,
@@ -149,7 +152,7 @@ macro_rules! event {
 			}
 
 			impl events::Handler for HandlerInstance {
-				fn run(&self, components: Vec<&Any>, mut_components: Vec<&mut Any>) {
+				fn run(&self, components: Vec<MappedSharedMutexReadGuard<Any>>, mut_components: Vec<MappedSharedMutexWriteGuard<Any>>) {
 					let handler_fn = self.handler_fn;
 					let data = &self.data;
 					handler_fn(data, components, mut_components) 

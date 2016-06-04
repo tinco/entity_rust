@@ -65,7 +65,7 @@ macro_rules! system {
 		pub mod $system_name {
 			use std::collections::HashMap;
 			use std::any::Any;
-			use shared_mutex::{ SharedMutex, MappedSharedMutexReadGuard };
+			use shared_mutex::{ SharedMutex };
 
 			system_contents!{ ( $($contents)* ) [ ] }
 		}
@@ -122,31 +122,35 @@ macro_rules! on {
 
 		use super::$event_name;
 		use entity_rust::entities::{ ComponentList };
-		use shared_mutex::{ SharedMutexReadGuard, SharedMutexWriteGuard };
+		use shared_mutex::{ MappedSharedMutexReadGuard, MappedSharedMutexWriteGuard };
 
 
 		impl State {
 			pub fn $event_name(&mut $_self,
 				$_data: &Vec<$event_name::Data>,
-				$( $name : &ComponentList<$typ>),*
-				$( $mut_name : &ComponentList<$mut_typ> ),* ) $event_body
+				$( $name : &MappedSharedMutexReadGuard<ComponentList<$typ>>),*
+				$( $mut_name : &MappedSharedMutexWriteGuard<ComponentList<$mut_typ>> ),* ) $event_body
 
 		}
 
-		pub fn $event_name(data: &Vec<$event_name::Data>, components: Vec<&Any>, mut mut_components: Vec<&mut Any>) {
+		pub fn $event_name(
+				data: &Vec<$event_name::Data>,
+				components: Vec<MappedSharedMutexReadGuard<Any>>,
+				mut_components: Vec<MappedSharedMutexWriteGuard<Any>>
+			) {
 			let mut components_iter = components.iter();
-			let mut mut_components_iter = mut_components.iter_mut();
+			let mut mut_components_iter = mut_components.iter();
 
 			$(
-				let $name : &SharedMutexReadGuard<ComponentList<$typ>> = components_iter
+				let $name : &MappedSharedMutexReadGuard<ComponentList<$typ>> = components_iter
 					.next().expect("Event components list too short.")
 					.downcast_ref().expect("Event component not of expected type.");
 			)*
 
 			$(
-				let $mut_name: &mut SharedMutexWriteGuard<ComponentList<$mut_typ>> = mut_components_iter
+				let $mut_name: &MappedSharedMutexWriteGuard<ComponentList<$mut_typ>> = mut_components_iter
 					.next().expect("Event mut_components list too short.")
-					.downcast_mut().expect("Event component not of expected type.");
+					.downcast_ref().expect("Event component not of expected type.");
 			)*
 
 			state.write().expect("Event state corrupted").$event_name(

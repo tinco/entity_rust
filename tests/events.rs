@@ -20,7 +20,7 @@ fn events_example_trigger() {
 	assert!(arg == queue[0])
 	*/
 }
-
+/*
 pub fn test_handler(arg : &Vec<test_event::Data>, cs: Vec<&Any>, mut_cs: Vec<&mut Any>) {
 	println!("Test");
 }
@@ -30,3 +30,4 @@ fn register_handler_works() {
 	let handler : test_event::HandlerFn = test_handler;
 	test_event::register_handler(handler, vec![], vec![]);
 }
+*/
