@@ -138,25 +138,25 @@ macro_rules! on {
 				components: Vec<MappedSharedMutexReadGuard<Any>>,
 				mut_components: Vec<MappedSharedMutexWriteGuard<Any>>
 			) {
-			let mut components_iter = components.iter();
-			let mut mut_components_iter = mut_components.iter();
+			let mut components_iter = components.into_iter();
+			let mut mut_components_iter = mut_components.into_iter();
 
 			$(
-				let $name : &MappedSharedMutexReadGuard<ComponentList<$typ>> = components_iter
+				let $name : MappedSharedMutexReadGuard<ComponentList<$typ>> = components_iter
 					.next().expect("Event components list too short.")
-					.downcast_ref().expect("Event component not of expected type.");
+					.map(|v| v.downcast_ref().expect("Event component not of expected type."));
 			)*
 
 			$(
-				let $mut_name: &MappedSharedMutexWriteGuard<ComponentList<$mut_typ>> = mut_components_iter
+				let $mut_name: MappedSharedMutexWriteGuard<ComponentList<$mut_typ>> = mut_components_iter
 					.next().expect("Event mut_components list too short.")
-					.downcast_ref().expect("Event component not of expected type.");
+					.map(|v| v.downcast_mut().expect("Event component not of expected type."));
 			)*
 
 			state.write().expect("Event state corrupted").$event_name(
 				data,
-				$($name),*
-				$($mut_name),*
+				&$($name),*
+				&$($mut_name),*
 			);
 		}
 	)
