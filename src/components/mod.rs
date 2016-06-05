@@ -57,7 +57,7 @@ macro_rules! component {
 
 			#[derive(Default)]
 			pub struct Component {
-				pub $($name : $field),*
+				$(pub $name : $field),*
 			}
 
 			pub struct ListGetters;
@@ -77,7 +77,12 @@ macro_rules! component {
 				pub static ref LIST: SharedMutex<ComponentList<Component>> = SharedMutex::new(Vec::new());
 			}
 
-			pub fn create(mut list: MappedSharedMutexWriteGuard<ComponentList<Component>>, entity: EntityID, $($name : $field),*) {
+			pub fn add(entity: EntityID, component: Component) {
+				let mut list = LIST.write().expect("COMPONENT_LIST corrupted");
+				list.push((entity, component));
+			}
+
+			pub fn add_with_lock(mut list: MappedSharedMutexWriteGuard<ComponentList<Component>>, entity: EntityID, $($name : $field),*) {
 				let c = Component { $($name : $name),* };
 				list.push((entity,c));
 			}

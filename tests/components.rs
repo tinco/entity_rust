@@ -16,7 +16,7 @@ fn generates_functions() {
 	reset_state();
 	{
 		let components = test_component::LIST.write().expect("Component lock corrupted.").into_mapped();
-		test_component::create(components, 1, 2, 3);
+		test_component::add_with_lock(components, 1, 2, 3);
 	}
 	{
 		let components = test_component::LIST.read()
@@ -42,5 +42,5 @@ fn gettable_lock() {
 		v.downcast_mut::<entity_rust::entities::ComponentList<test_component::Component>>()
 			.expect("Components mutex was not of expected type")
 	);
-	test_component::create(components, 1, 2, 3);
+	test_component::add_with_lock(components, 1, 2, 3);
 }
