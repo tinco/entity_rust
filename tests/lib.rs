@@ -7,7 +7,7 @@ extern crate uuid;
 
 // use std::any::Any;
 
-use entity_rust::{ entities, events, components };
+use entity_rust::{ events };
 
 event!{ test_event , x: i64, y: i64 }
 component! { test_component, a: i64, b: i64 }
@@ -24,7 +24,7 @@ system!( test_system {
 });
 
 fn reset_state() {
-	let mut state = test_system::state.write().expect("System lock corrupted.");
+	let mut state = test_system::STATE.write().expect("System lock corrupted.");
 	state.x = 0;
 }
 
@@ -37,6 +37,6 @@ fn run_event_runs_system_events() {
 
 	test_event::trigger(test_event::Data { x: 1, y: 6 });
 	events::run_events();
-	let state = test_system::state.read().expect("System lock corrupted");
+	let state = test_system::STATE.read().expect("System lock corrupted");
 	assert!(state.x == 3);
 }

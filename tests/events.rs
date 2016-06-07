@@ -5,8 +5,8 @@ extern crate lazy_static;
 extern crate shared_mutex;
 extern crate uuid;
 
-use entity_rust::events;
-use std::any::{ Any };
+// use entity_rust::events;
+/* use std::any::{ Any };
 
 event!(test_event, x: i64, y: i64 );
 
@@ -30,3 +30,4 @@ fn register_handler_works() {
 	let handler : test_event::HandlerFn = test_handler;
 	test_event::register_handler(handler, vec![], vec![]);
 }*/
+*/

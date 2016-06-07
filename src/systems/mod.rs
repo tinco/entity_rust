@@ -63,7 +63,6 @@
 macro_rules! system {
 	( $system_name:ident { $($contents:tt)* } ) => {
 		pub mod $system_name {
-			use std::collections::HashMap;
 			use std::any::Any;
 			use shared_mutex::{ SharedMutex };
 
@@ -153,7 +152,7 @@ macro_rules! on {
 					.map(|v| v.downcast_mut().expect("Event component not of expected type."));
 			)*
 
-			state.write().expect("Event state corrupted").$event_name(
+			STATE.write().expect("Event state corrupted").$event_name(
 				data,
 				&$($name),*
 				&$($mut_name),*
@@ -171,7 +170,7 @@ macro_rules! state {
 		}
 
 		lazy_static! {
-			pub static ref state: SharedMutex<State> = SharedMutex::new(State::default());
+			pub static ref STATE: SharedMutex<State> = SharedMutex::new(State::default());
 		}
 	)
 }

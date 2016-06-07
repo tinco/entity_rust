@@ -47,7 +47,7 @@ pub fn get_components_write_lock<'mutex>(id : TypeId) -> MappedSharedMutexWriteG
 macro_rules! component {
 	( $component_name:ident , $( $name:ident : $field:ty ),* ) => (
 		pub mod $component_name {
-			use shared_mutex::{ SharedMutex, SharedMutexWriteGuard, SharedMutexReadGuard, MappedSharedMutexReadGuard, MappedSharedMutexWriteGuard };
+			use shared_mutex::{ SharedMutex, MappedSharedMutexReadGuard, MappedSharedMutexWriteGuard };
 			use entity_rust::entities::{ ComponentList, EntityID };
 			use entity_rust::components;
 			use std::any::{ Any, TypeId };
@@ -66,7 +66,7 @@ macro_rules! component {
 					list.into_mapped().map(|v| v as &Any)
 				}
 				fn write_as_any<'mutex>(&self) -> MappedSharedMutexWriteGuard<'mutex, Any> {
-					let mut list = LIST.write().expect("COMPONENT_LIST corrupted");
+					let list = LIST.write().expect("COMPONENT_LIST corrupted");
 					list.into_mapped().map(|v| v as &mut Any)
 				}
 			}

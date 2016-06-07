@@ -5,8 +5,6 @@ extern crate lazy_static;
 extern crate shared_mutex;
 extern crate uuid;
 
-use std::any::Any;
-
 event!{ my_event , x: i64, y: i64 }
 
 pub struct Position {
@@ -24,7 +22,7 @@ system!( my_system {
 });
 
 fn reset_state() {
-	let mut state = my_system::state.write().expect("System lock corrupted.");
+	let mut state = my_system::STATE.write().expect("System lock corrupted.");
 	state.x = 0;
 }
 
@@ -39,12 +37,12 @@ fn generates_state() {
 	assert!(s.x == 0);
 
 	{
-		let mut state = my_system::state.write().expect("System lock corrupted.");
+		let mut state = my_system::STATE.write().expect("System lock corrupted.");
 		state.x = 2;
 	}
 
 	{
-		let state = my_system::state.read().expect("System lock corrupted");
+		let state = my_system::STATE.read().expect("System lock corrupted");
 		assert!(state.x == 2);
 	}
 }
