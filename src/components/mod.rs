@@ -7,12 +7,10 @@
 /// component! { physics, body: physics.RigidBody, physics_id: physics.ID }
 ///
 
-use std::collections::{ HashSet, HashMap };
+use std::collections::{ HashMap };
 //use std::ops::CoerceUnsized;
 use std::any::{ Any, TypeId };
-use shared_mutex::{ SharedMutex, SharedMutexReadGuard, SharedMutexWriteGuard, MappedSharedMutexReadGuard, MappedSharedMutexWriteGuard };
-
-pub mod example;
+use shared_mutex::{ SharedMutex, MappedSharedMutexReadGuard, MappedSharedMutexWriteGuard };
 
 pub trait MappedSharedMutexGetters {
 	fn read_as_any<'mutex>(&self) -> MappedSharedMutexReadGuard<'mutex, Any>;

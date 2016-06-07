@@ -21,8 +21,6 @@ use shared_mutex::{ SharedMutex, MappedSharedMutexReadGuard, MappedSharedMutexWr
 
 use components;
 
-pub mod example;
-
 pub trait Handler {
 	fn run(&self, Vec<MappedSharedMutexReadGuard<Any>>, Vec<MappedSharedMutexWriteGuard<Any>>);
 	fn component_types(&self) -> Vec<TypeId>;
@@ -103,7 +101,6 @@ pub fn run_events() {
 // scheduled to run only once per tick are triggered.
 // A good scheme could be to run `next_tick` every 16ms, while `run_events` is ran continuously.
 pub fn next_tick() {
-	// get NEXT_TICK_NEW_EVENTS
 	let mut this_tick_events = THIS_TICK_NEW_EVENTS.write().expect("THIS_TICK_NEW_EVENTS mutex was corrupted");
 	let mut next_events_lock = NEXT_TICK_NEW_EVENTS.write().expect("THIS_TICK_NEW_EVENTS mutex was corrupted");
 
