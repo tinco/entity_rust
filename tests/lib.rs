@@ -30,6 +30,7 @@ fn reset_state() {
 
 #[test]
 fn run_event_runs_system_events() {
+	reset_state();
 	test_system::register();
 	test_component::register();
 

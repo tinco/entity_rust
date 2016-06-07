@@ -5,10 +5,11 @@ extern crate lazy_static;
 extern crate shared_mutex;
 extern crate uuid;
 
+event!(test_event, x: i64, y: i64 );
+
 // use entity_rust::events;
 /* use std::any::{ Any };
 
-event!(test_event, x: i64, y: i64 );
 
 #[test]
 fn events_example_trigger() {

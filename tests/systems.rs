@@ -6,6 +6,7 @@ extern crate shared_mutex;
 extern crate uuid;
 
 event!{ my_event , x: i64, y: i64 }
+event!{ my_event_2 , x: i64, y: i64 }
 
 pub struct Position {
 	pub x: i64,
@@ -18,6 +19,10 @@ system!( my_system {
 	on!( my_event, { positions: super::Position }, {}) self, data => {
 		self.x += data[0].x;
 		self.x += positions[0].1.x;
+	}
+
+	on!( my_event_2, { positions: super::Position }, {}) self, data => {
+		// do nothing
 	}
 });
 
@@ -33,6 +38,7 @@ fn generates_functions() {
 
 #[test]
 fn generates_state() {
+	reset_state();
 	let s = my_system::State::default();
 	assert!(s.x == 0);
 

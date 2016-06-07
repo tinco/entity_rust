@@ -65,6 +65,8 @@ macro_rules! system {
 		pub mod $system_name {
 			use std::any::Any;
 			use shared_mutex::{ SharedMutex };
+			use entity_rust::entities::{ ComponentList };
+			use shared_mutex::{ MappedSharedMutexReadGuard, MappedSharedMutexWriteGuard };
 
 			system_contents!{ ( $($contents)* ) [ ] }
 		}
@@ -119,21 +121,19 @@ macro_rules! on {
 	( ($event_name:ident, { $( $mut_name:ident : $mut_typ:ty )* } , { $($name:ident : $typ:ty)* } ) 
 		$_self:ident, $_data:ident => $event_body:block ) => (
 
-		use super::$event_name;
-		use entity_rust::entities::{ ComponentList };
-		use shared_mutex::{ MappedSharedMutexReadGuard, MappedSharedMutexWriteGuard };
-
-
 		impl State {
+			#[allow(unused_variables)]
 			pub fn $event_name(&mut $_self,
-				$_data: &Vec<$event_name::Data>,
+				$_data: &Vec<super::$event_name::Data>,
 				$( $name : &MappedSharedMutexReadGuard<ComponentList<$typ>>),*
 				$( $mut_name : &MappedSharedMutexWriteGuard<ComponentList<$mut_typ>> ),* ) $event_body
 
 		}
 
+		#[allow(unused_variables)]
+		#[allow(unused_mut)]
 		pub fn $event_name(
-				data: &Vec<$event_name::Data>,
+				data: &Vec<super::$event_name::Data>,
 				components: Vec<MappedSharedMutexReadGuard<Any>>,
 				mut_components: Vec<MappedSharedMutexWriteGuard<Any>>
 			) {
@@ -186,10 +186,9 @@ macro_rules! system_register {
 		pub fn register() {
 			use std::any::TypeId;
 			$(
-				use $event_name;
 				let mut_ts = vec![ $( TypeId::of::< $mut_typ >() ),* ];
 				let ts = vec![ $( TypeId::of::< $typ >() ),* ];
-				$event_name::register_handler($event_name, ts, mut_ts);
+				super::$event_name::register_handler($event_name, ts, mut_ts);
 			)*
 		}
 	)
