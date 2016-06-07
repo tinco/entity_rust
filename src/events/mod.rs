@@ -104,9 +104,12 @@ pub fn run_events() {
 // A good scheme could be to run `next_tick` every 16ms, while `run_events` is ran continuously.
 pub fn next_tick() {
 	// get NEXT_TICK_NEW_EVENTS
-	// get THIS_TICK_NEW_EVENTS
-	// append NEXT_TICK_NEW_EVENTS to THIS_TICK_NEW_EVENTS
-	// same for queues
+	let mut this_tick_events = THIS_TICK_NEW_EVENTS.write().expect("THIS_TICK_NEW_EVENTS mutex was corrupted");
+	let mut next_events_lock = NEXT_TICK_NEW_EVENTS.write().expect("THIS_TICK_NEW_EVENTS mutex was corrupted");
+
+	for next_event in next_events_lock.drain() {
+		this_tick_events.insert(next_event);
+	}
 }
 
 #[macro_export]
