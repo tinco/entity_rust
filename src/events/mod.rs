@@ -56,6 +56,10 @@ pub fn register_event(event : Event) {
 	events.insert(event.name.clone(), event);
 }
 
+pub fn has_events() -> bool {
+	THIS_TICK_NEW_EVENTS.read().expect("THIS_TICK_NEW_EVENTS mutex was corrupted").len() > 0
+}
+
 // Runs a single iteration of the event system. Can be run in a loop to process events
 // continuously, but should be interleaved with `next_tick` to progress properly.
 pub fn run_events() {
@@ -115,7 +119,7 @@ macro_rules! event {
 		pub mod $name {
 			use shared_mutex::{ SharedMutex, MappedSharedMutexWriteGuard, MappedSharedMutexReadGuard };
 			use std::any::{ Any, TypeId };
-			use entity_rust::events;
+			use $crate::events;
 			use uuid::Uuid;
 
 			/// Example component
@@ -168,11 +172,14 @@ macro_rules! event {
 				pub static ref EVENT_UUID: String = Uuid::new_v4().simple().to_string();
 				pub static ref HANDLERS: SharedMutex<Vec<Handler>> = SharedMutex::new(vec![]);
 				pub static ref THIS_TICK_DATA: SharedMutex<Vec<Data>> = SharedMutex::new(vec![]);
-				pub static ref NEXT_TICK_DATA: SharedMutex<Vec<Data>> = SharedMutex::new(vec![]);
 			}
 
 			/// Listeners are a list of functions that should be called by trigger
-			pub fn trigger(argument: Data) {
+			pub fn trigger($($field_name : $field_typ),*) {
+				let argument = Data {
+					$($field_name : $field_name),*
+				};
+
 				let mut data = THIS_TICK_DATA.write().expect("THIS_TICK_DATA mutex corrupted");
 				data.push(argument);
 

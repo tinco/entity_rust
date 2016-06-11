@@ -65,7 +65,8 @@ macro_rules! system {
 		pub mod $system_name {
 			use std::any::Any;
 			use shared_mutex::{ SharedMutex };
-			use entity_rust::entities::{ ComponentList };
+			#[allow(unused_imports)]
+			use $crate::entities::{ ComponentList };
 			use shared_mutex::{ MappedSharedMutexReadGuard, MappedSharedMutexWriteGuard };
 
 			system_contents!{ ( $($contents)* ) [ ] }

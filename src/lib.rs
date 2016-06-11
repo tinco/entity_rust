@@ -64,6 +64,8 @@
 //! ```
 //!
 
+#![feature(time2)]
+
 #[macro_use]
 extern crate lazy_static;
 extern crate shared_mutex;
@@ -71,7 +73,43 @@ extern crate uuid;
 
 #[macro_use]
 pub mod helpers;
+#[macro_use]
 pub mod components;
 pub mod entities;
+#[macro_use]
 pub mod events;
+#[macro_use]
 pub mod systems;
+
+use std::thread;
+pub use std::time::{ Duration, Instant };
+
+event!{ tick, step: super::Duration }
+
+pub fn run(ticks_per_second: u32) {
+	let events_thread = ticker(ticks_per_second, true);
+	let _ = events_thread.join();
+}
+
+pub fn ticker(ticks_per_second: u32, sleep: bool) -> thread::JoinHandle<()> {
+	let step = Duration::from_secs(1) / ticks_per_second;
+	
+	let mut last_tick = Instant::now();
+
+	thread::spawn(move || {
+		loop {
+			let current_time = Instant::now();
+			let next_tick = last_tick + step;
+			if next_tick > current_time {
+				if sleep {
+					thread::sleep(Duration::from_millis(1));
+				}
+			} else {
+				tick::trigger(step);
+				events::next_tick();
+				last_tick = Instant::now();
+				events::run_events();
+			}
+		}
+	})
+}
