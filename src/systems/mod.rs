@@ -154,8 +154,8 @@ macro_rules! on {
 
 			STATE.write().expect("Event state corrupted").$event_name(
 				data,
-				&$($name),*
-				&$($mut_name),*
+				$(&$name),*
+				$(&$mut_name),*
 			);
 		}
 	)
