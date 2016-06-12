@@ -1,6 +1,6 @@
 [package]
 name = "entity_rust"
-version = "0.0.2"
+version = "0.0.3"
 authors = ["Tinco Andringa <mail@tinco.nl>"]
 
 # A short blurb about the package. This is not rendered in any format when
