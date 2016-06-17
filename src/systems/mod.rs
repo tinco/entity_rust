@@ -75,6 +75,11 @@ macro_rules! system {
 }
 
 #[macro_export]
+macro_rules! append_path_component {
+	($($path_component:ident)::+, $extension:ident) => ( $($path_component)::*::$extension )
+}
+
+#[macro_export]
 macro_rules! system_contents {
 	// Consume on! invocations
 	(
@@ -135,15 +140,15 @@ macro_rules! system_contents {
 
 #[macro_export]
 macro_rules! on {
-	( ($event_name:ident, { $( $mut_name:ident : $mut_typ:ty )* } , { $($name:ident : $typ:ty)* } ) 
+	( ($event_name:ident, { $( $mut_name:ident : $mut_typ:tt )* } , { $($name:ident : $typ:tt)* } ) 
 		$_self:ident, $_data:ident => $event_body:block ) => (
 
 		impl State {
 			#[allow(unused_variables)]
 			pub fn $event_name(&mut $_self,
 				$_data: &Vec<super::$event_name::Data>,
-				$( $name : &MappedSharedMutexReadGuard<ComponentList<$typ>>),*
-				$( $mut_name : &MappedSharedMutexWriteGuard<ComponentList<$mut_typ>> ),* ) $event_body
+				$( $name : &MappedSharedMutexReadGuard<ComponentList<append_path_component!($typ,Component)>>),*
+				$( $mut_name : &MappedSharedMutexWriteGuard<ComponentList<append_path_component!($mut_typ,Component)>> ),* ) $event_body
 
 		}
 
@@ -158,13 +163,13 @@ macro_rules! on {
 			let mut mut_components_iter = mut_components.into_iter();
 
 			$(
-				let $name : MappedSharedMutexReadGuard<ComponentList<$typ>> = components_iter
+				let $name : MappedSharedMutexReadGuard<ComponentList<append_path_component!($typ,Component)>> = components_iter
 					.next().expect("Event components list too short.")
 					.map(|v| v.downcast_ref().expect("Event component not of expected type."));
 			)*
 
 			$(
-				let $mut_name: MappedSharedMutexWriteGuard<ComponentList<$mut_typ>> = mut_components_iter
+				let $mut_name: MappedSharedMutexWriteGuard<ComponentList<append_path_component!($mut_typ,Component)>> = mut_components_iter
 					.next().expect("Event mut_components list too short.")
 					.map(|v| v.downcast_mut().expect("Event component not of expected type."));
 			)*
@@ -196,16 +201,16 @@ macro_rules! state {
 macro_rules! system_register {
 	( $( (
 			$event_name:ident,
-			{ $( $mut_name:ident : $mut_typ:ty )* } ,
-			{ $( $name:ident : $typ:ty )* }
+			{ $( $mut_name:ident : $mut_typ:ident )* } ,
+			{ $( $name:ident : $typ:ident )* }
 		)
 	),* ) => (
 		pub fn register() {
 			#[allow(unused_imports)]
 			use std::any::TypeId;
 			$(
-				let mut_ts = vec![ $( TypeId::of::< $mut_typ >() ),* ];
-				let ts = vec![ $( TypeId::of::< $typ >() ),* ];
+				let mut_ts = vec![ $( TypeId::of::< $mut_typ::Component >() ),* ];
+				let ts = vec![ $( TypeId::of::< $typ::Component >() ),* ];
 				super::$event_name::register_handler($event_name, ts, mut_ts);
 			)*
 		}

@@ -1,3 +1,5 @@
+#![feature(type_macros)]
+
 #[macro_use]
 extern crate entity_rust;
 #[macro_use]
@@ -8,20 +10,20 @@ extern crate uuid;
 event!{ my_event , x: i64, y: i64 }
 event!{ my_event_2 , x: i64, y: i64 }
 
-pub struct Position {
-	pub x: i64,
-	pub y: i64
-}
-
 system!( my_system {
+	component! { position,
+		x: i64,
+		y: i64
+	}
+
 	state! { x: i64 }
 
-	on!( my_event, { positions: super::Position }, {}) self, data => {
+	on!( my_event, { positions: position }, {}) self, data => {
 		self.x += data[0].x;
 		self.x += positions[0].1.x;
 	}
 
-	on!( my_event_2, { positions: super::Position }, {}) self, data => {
+	on!( my_event_2, { positions: position }, {}) self, data => {
 		// do nothing
 	}
 });

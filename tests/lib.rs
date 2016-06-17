@@ -1,3 +1,5 @@
+#![feature(type_macros)]
+
 #[macro_use]
 extern crate entity_rust;
 #[macro_use]
@@ -17,7 +19,7 @@ system!( test_system {
 
 	state! { x: i64 }
 
-	on!( test_event, { positions: test_component::Component }, {}) self, data => {
+	on!( test_event, { positions: test_component }, {}) self, data => {
 		assert!(data.len() > 0);
 		self.x += data[0].x;
 		assert!(positions.len() > 0);

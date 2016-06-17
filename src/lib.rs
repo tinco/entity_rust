@@ -1,3 +1,5 @@
+#![feature(type_macros)]
+
 //! # Goal
 //!
 //! We want to define components, store them in an efficient manner and
@@ -62,8 +64,6 @@
 //!   }}
 //! }}
 //! ```
-//!
-
 #[macro_use]
 extern crate lazy_static;
 extern crate shared_mutex;
