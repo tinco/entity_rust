@@ -109,6 +109,22 @@ macro_rules! system_contents {
 		}
 	);
 
+	(
+		(
+			$token_tree:item $($rest:tt)*
+		) [
+			$( $saved_decl:tt ),*
+		]
+	) => (
+		$token_tree
+
+		system_contents!{
+			( $($rest)* )
+			[ $( $saved_decl ),* ]
+		}
+
+	);
+
 	// When all content has been consumed emit register macro
 	(
 		() [ $( $event_declaration:tt ),* ]
@@ -185,6 +201,7 @@ macro_rules! system_register {
 		)
 	),* ) => (
 		pub fn register() {
+			#[allow(unused_imports)]
 			use std::any::TypeId;
 			$(
 				let mut_ts = vec![ $( TypeId::of::< $mut_typ >() ),* ];
