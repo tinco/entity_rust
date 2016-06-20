@@ -19,7 +19,7 @@ system!( test_system {
 
 	state! { x: i64 }
 
-	on!( test_event, { positions: test_component }, {}) self, data => {
+	on!( super::test_event, { positions: test_component }, {}) self, data => {
 		assert!(data.len() > 0);
 		self.x += data[0].x;
 		assert!(positions.len() > 0);

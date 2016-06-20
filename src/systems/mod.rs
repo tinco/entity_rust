@@ -75,8 +75,34 @@ macro_rules! system {
 }
 
 #[macro_export]
+macro_rules! as_type { ($i:ty) => {$i} }
+#[macro_export]
+macro_rules! as_path { ($i:path) => {$i} }
+
+#[macro_export]
 macro_rules! append_path_component {
-	($($path_component:ident)::+, $extension:ident) => ( $($path_component)::*::$extension )
+	($($path_component:tt)::+, $extension:tt) => ( as_path!($($path_component)::*::$extension) )
+}
+
+#[macro_export]
+macro_rules! pass_path_and_name {
+	(
+		$callback:ident, $path_component:tt::$($more_path_component:tt)::+, $($rest:tt)*
+	) => (
+		pass_path_and_name! { $callback [ $path_component::$($more_path_component)::* ] $($more_path_component)::*, $($rest)* }
+	);
+
+	(
+		$callback:ident [ $path:path ] $path_component:tt::$($more_path_component:tt)::+, $($rest:tt)*
+	) => (
+		pass_path_and_name! { $callback [ $path ] $($more_path_component)::*, $($rest)* }
+	);
+
+	(
+		$callback:ident [ $path:path ] $name:ident, $($rest:tt)*
+	) => (
+		$callback! { $path, $name, $($rest)* }
+	)
 }
 
 #[macro_export]
@@ -85,17 +111,17 @@ macro_rules! system_contents {
 	(
 		(
 			on! (
-				$event_name:ident, $($event_declaration:tt)*
+				$($event_name:tt)::*, $($event_declaration:tt)*
 			) $_self:ident, $_data:ident => $event_body:block $($rest:tt)*
 		) [ 
 			$( $saved_decl:tt ),*
 		] 
 	) => (
-		on! { ($event_name, $( $event_declaration)* ) $_self , $_data => $event_body }
+		pass_path_and_name! { on_impl, $($event_name)::* , $( $event_declaration)*, $_self , $_data => $event_body }
 
 		system_contents!{ 
 			( $($rest)* )
-			[ ( $event_name, $( $event_declaration)* ) $(, $saved_decl)* ]
+			[ ( $($event_name)::*, $( $event_declaration)* ) $(, $saved_decl)* ]
 		}
 	);
 
@@ -139,14 +165,14 @@ macro_rules! system_contents {
 }
 
 #[macro_export]
-macro_rules! on {
-	( ($event_name:ident, { $( $mut_name:ident : $mut_typ:tt )* } , { $($name:ident : $typ:tt)* } ) 
+macro_rules! on_impl {
+	( $event_path:tt, $event_name:ident, { $( $mut_name:ident : $mut_typ:tt )* } , { $($name:ident : $typ:tt)* } ,
 		$_self:ident, $_data:ident => $event_body:block ) => (
 
 		impl State {
 			#[allow(unused_variables)]
 			pub fn $event_name(&mut $_self,
-				$_data: &Vec<super::$event_name::Data>,
+				$_data: &Vec<append_path_component!($event_path, Data)>,
 				$( $name : &MappedSharedMutexReadGuard<ComponentList<append_path_component!($typ,Component)>>),*
 				$( $mut_name : &MappedSharedMutexWriteGuard<ComponentList<append_path_component!($mut_typ,Component)>> ),* ) $event_body
 
@@ -155,7 +181,7 @@ macro_rules! on {
 		#[allow(unused_variables)]
 		#[allow(unused_mut)]
 		pub fn $event_name(
-				data: &Vec<super::$event_name::Data>,
+				data: &Vec<append_path_component!($event_path, Data)>,
 				components: Vec<MappedSharedMutexReadGuard<Any>>,
 				mut_components: Vec<MappedSharedMutexWriteGuard<Any>>
 			) {
