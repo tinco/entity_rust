@@ -146,7 +146,7 @@ macro_rules! on {
 		impl State {
 			#[allow(unused_variables)]
 			pub fn $event_name(&mut $_self,
-				$_data: &Vec<super::$event_name::Data>,
+				$_data: &Vec<$event_name::Data>,
 				$( $name : &MappedSharedMutexReadGuard<ComponentList<append_path_component!($typ,Component)>>),*
 				$( $mut_name : &MappedSharedMutexWriteGuard<ComponentList<append_path_component!($mut_typ,Component)>> ),* ) $event_body
 
@@ -155,7 +155,7 @@ macro_rules! on {
 		#[allow(unused_variables)]
 		#[allow(unused_mut)]
 		pub fn $event_name(
-				data: &Vec<super::$event_name::Data>,
+				data: &Vec<$event_name::Data>,
 				components: Vec<MappedSharedMutexReadGuard<Any>>,
 				mut_components: Vec<MappedSharedMutexWriteGuard<Any>>
 			) {
@@ -211,7 +211,7 @@ macro_rules! system_register {
 			$(
 				let mut_ts = vec![ $( TypeId::of::< $mut_typ::Component >() ),* ];
 				let ts = vec![ $( TypeId::of::< $typ::Component >() ),* ];
-				super::$event_name::register_handler($event_name, ts, mut_ts);
+				$event_name::register_handler($event_name, ts, mut_ts);
 			)*
 		}
 	)

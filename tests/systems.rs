@@ -11,6 +11,9 @@ event!{ my_event , x: i64, y: i64 }
 event!{ my_event_2 , x: i64, y: i64 }
 
 system!( my_system {
+	use super::my_event;
+	use super::my_event_2;
+
 	component! { position,
 		x: i64,
 		y: i64

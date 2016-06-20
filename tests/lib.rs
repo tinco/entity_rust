@@ -16,6 +16,7 @@ component! { test_component, a: i64, b: i64 }
 
 system!( test_system {
 	use super::test_component;
+	use super::test_event;
 
 	state! { x: i64 }
 
