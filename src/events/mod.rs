@@ -218,10 +218,32 @@ macro_rules! event {
 	)
 }
 
-/// Queues an event to be dispatched.
-/// This means that the argument is put into the trigger queue for the
-/// event and the event handlers will be invoked either at the next run loop.
-/// or immediately.
-macro_rules! trigger {
-	() => ()
+#[macro_export]
+macro_rules! sync_event {
+	( $name:ident, $( $field_name:ident : $field_typ:ty ),* ) => (
+		pub mod $name {
+			use shared_mutex::SharedMutex;
+
+			pub type HandlerFn = fn($($field_name : $field_typ),*);
+
+			lazy_static! {
+				pub static ref HANDLERS: SharedMutex<Vec<HandlerFn>> = SharedMutex::new(vec![]);
+			}
+
+			/// Listeners are a list of functions that should be called by trigger
+			pub fn trigger($($field_name : $field_typ),*) {
+				let handlers : Vec<HandlerFn>;
+				handlers = HANDLERS.read().expect("HANDLERS mutex corrupted").clone();
+				// TODO let handlers define priorities so they can be ordered
+				for handler_fn in handlers {
+					handler_fn($($field_name),*);
+				}
+			}
+
+			pub fn register_handler(handler_fn: HandlerFn) {
+				let mut handlers = HANDLERS.write().expect("Events HANDLERS mutex corrupted");
+				handlers.push(handler_fn);
+			}
+		}
+	)
 }

@@ -12,6 +12,7 @@ extern crate uuid;
 use entity_rust::{ events };
 
 event!{ test_event , x: i64, y: i64 }
+sync_event! { test_sync_event, x: i64 }
 component! { test_component, a: i64, b: i64 }
 
 system!( test_system {

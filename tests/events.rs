@@ -6,6 +6,17 @@ extern crate shared_mutex;
 extern crate uuid;
 
 event!(test_event, x: i64, y: i64 );
+sync_event! { test_sync_event, x: i64 }
+
+fn sync_event_handler(x: i64) {
+	assert!(x == 0);
+}
+
+#[test]
+fn sync_events() {
+	test_sync_event::register_handler(sync_event_handler);
+	test_sync_event::trigger(0);
+}
 
 // use entity_rust::events;
 /* use std::any::{ Any };
