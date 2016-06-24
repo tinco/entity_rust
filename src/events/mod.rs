@@ -220,23 +220,23 @@ macro_rules! event {
 
 #[macro_export]
 macro_rules! sync_event {
-	( $name:ident, $( $field_name:ident : $field_typ:ty ),* ) => (
+	( $name:ident, $field_name:ident : $field_typ:ty ) => (
 		pub mod $name {
 			use shared_mutex::SharedMutex;
 
-			pub type HandlerFn = fn($($field_name : $field_typ),*);
+			pub type Argument<'a> = $field_typ;
+			pub type HandlerFn = fn(Argument);
 
 			lazy_static! {
 				pub static ref HANDLERS: SharedMutex<Vec<HandlerFn>> = SharedMutex::new(vec![]);
 			}
 
 			/// Listeners are a list of functions that should be called by trigger
-			pub fn trigger($($field_name : $field_typ),*) {
-				let handlers : Vec<HandlerFn>;
-				handlers = HANDLERS.read().expect("HANDLERS mutex corrupted").clone();
+			pub fn trigger<'a>($field_name : $field_typ) {
+				let handlers = HANDLERS.read().expect("HANDLERS mutex corrupted");
 				// TODO let handlers define priorities so they can be ordered
-				for handler_fn in handlers {
-					handler_fn($($field_name),*);
+				for handler_fn in handlers.iter() {
+					handler_fn($field_name);
 				}
 			}
 

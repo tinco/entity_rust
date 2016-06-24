@@ -12,12 +12,13 @@ extern crate uuid;
 use entity_rust::{ events };
 
 event!{ test_event , x: i64, y: i64 }
-sync_event! { test_sync_event, x: i64 }
+sync_event! { test_sync_event, x: &'a i64 }
 component! { test_component, a: i64, b: i64 }
 
 system!( test_system {
 	use super::test_component;
 	use super::test_event;
+	use super::test_sync_event;
 
 	state! { x: i64 }
 
@@ -27,6 +28,10 @@ system!( test_system {
 		assert!(positions.len() > 0);
 		self.x += positions[0].1.a;
 	}
+
+	on_sync!{ (test_sync_event, self, x) {
+		self.x += *x;
+	}}
 });
 
 fn reset_state() {
@@ -46,4 +51,11 @@ fn run_event_runs_system_events() {
 	events::run_events();
 	let state = test_system::STATE.read().expect("System lock corrupted");
 	assert!(state.x == 3);
+}
+
+
+#[test]
+fn run_sync_event() {
+	// reset_state();
+	// test_system::register();
 }

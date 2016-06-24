@@ -1,4 +1,4 @@
-
+	
 /// 
 /// Systems are a set of event handlers and optionally some associated state.
 ///
@@ -179,6 +179,27 @@ macro_rules! on {
 				$(&$name),*
 				$(&$mut_name),*
 			);
+		}
+	)
+}
+
+#[macro_export]
+macro_rules! on_sync {
+	( ($event_name:ident, $_self:ident, $_data:ident) $event_body:block ) => (
+
+		impl State {
+			#[allow(unused_variables)]
+			pub fn $event_name(&mut $_self,
+				$_data: $event_name::Argument) $event_body
+
+		}
+
+		#[allow(unused_variables)]
+		#[allow(unused_mut)]
+		pub fn $event_name(
+				data: $event_name::Argument
+			) {
+			STATE.write().expect("Event state corrupted").$event_name(data);
 		}
 	)
 }
