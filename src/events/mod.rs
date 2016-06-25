@@ -214,6 +214,11 @@ macro_rules! event {
 					Box::new(HandlerInstance::new(h, data.clone())) as Box<events::Handler>
 				).collect()
 			}
+
+			pub fn clear_handlers() {
+				let mut handlers = HANDLERS.write().expect("Events HANDLERS mutex corrupted");
+				handlers.clear();
+			}
 		}
 	)
 }
@@ -243,6 +248,11 @@ macro_rules! sync_event {
 			pub fn register_handler(handler_fn: HandlerFn) {
 				let mut handlers = HANDLERS.write().expect("Events HANDLERS mutex corrupted");
 				handlers.push(handler_fn);
+			}
+
+			pub fn clear_handlers() {
+				let mut handlers = HANDLERS.write().expect("Events HANDLERS mutex corrupted");
+				handlers.clear();
 			}
 		}
 	)

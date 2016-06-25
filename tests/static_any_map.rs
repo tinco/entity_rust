@@ -12,11 +12,11 @@ static_any_vec_map! { my_map, String }
 fn static_map_initial_set() {
 	let i : i64 = 5;
 	let name = String::from("my_queue");
-	my_map::clear::<i64>(&name);
+	my_map::clear_all();
 	my_map::push(&name, i);
 	let queue = my_map::get(&name);
-	assert!(queue.len() == 1);
-	assert!(i == queue[0]);
+	assert_eq!(queue.len(), 1);
+	assert_eq!(i, queue[0]);
 }
 
 #[test]
@@ -25,7 +25,7 @@ fn static_map_multi_set() {
 	let j : i64 = 352;
 	let k : i64 = 234;
 	let name = String::from("my_queue");
-	my_map::clear::<i64>(&name);
+	my_map::clear_all();
 	my_map::push(&name, i);
 	my_map::push(&name, j);
 	my_map::push(&name, k);
@@ -42,19 +42,18 @@ fn static_map_multi_queue_set() {
 	let j : i64 = 352;
 	let name = String::from("my_queue");
 	let name2 = String::from("next_queue");
-	my_map::clear::<i64>(&name);
-	my_map::clear::<i64>(&name2);
+	my_map::clear_all();
 	my_map::push(&name, i);
 	my_map::push(&name2, j);
 	{
 		let queue = my_map::get(&name);
-		assert!(queue.len() == 1);
-		assert!(i == queue[0]);
+		assert_eq!(queue.len(), 1);
+		assert_eq!(i, queue[0]);
 	}
 	{
 		let queue2 = my_map::get(&name2);
-		assert!(queue2.len() == 1);
-		assert!(j == queue2[0]);
+		assert_eq!(queue2.len(), 1);
+		assert_eq!(j, queue2[0]);
 	}
 }
 

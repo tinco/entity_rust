@@ -41,6 +41,11 @@ macro_rules! static_any_vec_map {
 				let mut map = MAP.write().expect("Static MAP is not initialized.");
 				return Vec::from_iter(map.drain());
 			}
+
+			pub fn clear_all() {
+				let mut map = MAP.write().expect("Static MAP is not initialized.");
+				map.clear();
+			}
 		}
 	}
 }

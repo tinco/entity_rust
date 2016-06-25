@@ -69,7 +69,7 @@ macro_rules! system {
 			use $crate::entities::{ ComponentList };
 			use shared_mutex::{ MappedSharedMutexReadGuard, MappedSharedMutexWriteGuard };
 
-			system_contents!{ ( $($contents)* ) [ ] }
+			system_contents!{ ( $($contents)* ) [ ] [ ] }
 		}
 	} 
 }
@@ -84,33 +84,58 @@ macro_rules! system_contents {
 	// Consume on! invocations
 	(
 		(
-			on! (
-				$event_name:ident, $($event_declaration:tt)*
-			) $_self:ident, $_data:ident => $event_body:block $($rest:tt)*
-		) [ 
+			on $event_name:ident, {$($event_declaration_mut:tt)*}, {$($event_declaration:tt)*},
+			($_self:ident, $_data:ident) => $event_body:block $($rest:tt)*
+		) [
 			$( $saved_decl:tt ),*
-		] 
+		] [
+			$( $saved_sync_decl:tt ),*
+		]
 	) => (
-		on! { ($event_name, $( $event_declaration)* ) $_self , $_data => $event_body }
+		on! { ($event_name, { $( $event_declaration_mut )*  }, { $( $event_declaration)* }  ) $_self , $_data => $event_body }
 
 		system_contents!{ 
 			( $($rest)* )
-			[ ( $event_name, $( $event_declaration)* ) $(, $saved_decl)* ]
+			[ ( $event_name, { $( $event_declaration_mut)* }, {$( $event_declaration)* } ) $(, $saved_decl)* ]
+			[ $($saved_sync_decl),* ]
 		}
 	);
+
+	// Consume on_sync! invocations
+	(
+		(
+			on_sync	$event_name:ident, ($_self:ident, $_data:ident) => $event_body:block $($rest:tt)*
+		) [ 
+			$( $saved_decl:tt ),*
+		] [ 
+			$( $saved_sync_decl:tt ),*
+		] 
+	) => (
+		on_sync! { ($event_name, $_self, $_data) $event_body }
+
+		system_contents!{ 
+			( $($rest)* )
+			[ $($saved_decl),* ]
+			[ $event_name $(, $saved_sync_decl)* ]
+		}
+	);
+
 
 	(
 		(
 			state! { $($state_declaration:tt)* } $($rest:tt)*
 		) [
 			$( $saved_decl:tt ),*
-		] 
+		] [ 
+			$( $saved_sync_decl:tt ),*
+		]
 	) => (
 		state! { $($state_declaration)* }
 
 		system_contents!{
 			( $($rest)* )
 			[ $( $saved_decl ),* ]
+			[ $(, $saved_sync_decl)* ]
 		}
 	);
 
@@ -119,6 +144,8 @@ macro_rules! system_contents {
 			$token_tree:item $($rest:tt)*
 		) [
 			$( $saved_decl:tt ),*
+		] [ 
+			$( $saved_sync_decl:tt ),*
 		]
 	) => (
 		$token_tree
@@ -126,15 +153,16 @@ macro_rules! system_contents {
 		system_contents!{
 			( $($rest)* )
 			[ $( $saved_decl ),* ]
+			[ $(, $saved_sync_decl)* ]
 		}
 
 	);
 
 	// When all content has been consumed emit register macro
 	(
-		() [ $( $event_declaration:tt ),* ]
+		() [ $( $event_declaration:tt ),* ] [ $( $sync_event_declaration:tt ),* ]
 	) => (
-		system_register!{ $( $event_declaration ),* }
+		system_register!{ ($( $event_declaration ),*) ($( $sync_event_declaration ),*) }
 	)
 }
 
@@ -220,12 +248,25 @@ macro_rules! state {
 
 #[macro_export]
 macro_rules! system_register {
-	( $( (
-			$event_name:ident,
-			{ $( $mut_name:ident : $mut_typ:ident )* } ,
-			{ $( $name:ident : $typ:ident )* }
-		)
-	),* ) => (
+	(
+
+	(
+		$( 
+			(
+				$event_name:ident,
+				{ $( $mut_name:ident : $mut_typ:ident )* } ,
+				{ $( $name:ident : $typ:ident )* }
+			)
+		),*
+	)
+	
+	( 
+		$(
+			$sync_event_name:ident
+		),* 
+	)
+
+	) => (
 		pub fn register() {
 			#[allow(unused_imports)]
 			use std::any::TypeId;
@@ -233,6 +274,10 @@ macro_rules! system_register {
 				let mut_ts = vec![ $( TypeId::of::< $mut_typ::Component >() ),* ];
 				let ts = vec![ $( TypeId::of::< $typ::Component >() ),* ];
 				$event_name::register_handler($event_name, ts, mut_ts);
+			)*
+
+			$(
+				$sync_event_name::register_handler($sync_event_name);
 			)*
 		}
 	)

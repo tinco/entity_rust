@@ -22,21 +22,24 @@ system!( test_system {
 
 	state! { x: i64 }
 
-	on!( test_event, { positions: test_component }, {}) self, data => {
+	on test_event, { positions: test_component }, {}, (self, data) => {
 		assert!(data.len() > 0);
 		self.x += data[0].x;
 		assert!(positions.len() > 0);
 		self.x += positions[0].1.a;
 	}
 
-	on_sync!{ (test_sync_event, self, x) {
+	on_sync test_sync_event, (self, x) => {
 		self.x += *x;
-	}}
+		assert!(false);
+	}
 });
 
 fn reset_state() {
 	let mut state = test_system::STATE.write().expect("System lock corrupted.");
 	state.x = 0;
+	test_sync_event::clear_handlers();
+	test_event::clear_handlers();
 }
 
 #[test]
@@ -47,15 +50,24 @@ fn run_event_runs_system_events() {
 
 	test_component::add(1, test_component::Component { a: 2, b: 10 });
 
-	test_event::trigger(1, 6);
+	{
+		let state = test_system::STATE.read().expect("System lock corrupted");
+		assert!(state.x == 0);
+	}
+
+	test_event::trigger(1, 39);
 	events::run_events();
-	let state = test_system::STATE.read().expect("System lock corrupted");
-	assert!(state.x == 3);
+	{
+		let state = test_system::STATE.read().expect("System lock corrupted");
+		assert_eq!(state.x, 3);
+	}
 }
 
 
 #[test]
 fn run_sync_event() {
-	// reset_state();
-	// test_system::register();
+	reset_state();
+	test_system::register();
+	let x = 0;
+	test_sync_event::trigger(&x);
 }

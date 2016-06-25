@@ -21,12 +21,12 @@ system!( my_system {
 
 	state! { x: i64 }
 
-	on!( my_event, { positions: position }, {}) self, data => {
+	on my_event, { positions: position }, {}, (self, data) => {
 		self.x += data[0].x;
 		self.x += positions[0].1.x;
 	}
 
-	on!( my_event_2, { positions: position }, {}) self, data => {
+	on my_event_2, { positions: position }, {}, (self, data) => {
 		// do nothing
 	}
 });
