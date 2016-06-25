@@ -177,7 +177,6 @@ macro_rules! on {
 				$_data: &Vec<$event_name::Data>,
 				$( $name : &MappedSharedMutexReadGuard<ComponentList<append_path_component!($typ,Component)>>),*
 				$( $mut_name : &MappedSharedMutexWriteGuard<ComponentList<append_path_component!($mut_typ,Component)>> ),* ) $event_body
-
 		}
 
 		#[allow(unused_variables)]

@@ -31,7 +31,7 @@ system!( test_system {
 
 	on_sync test_sync_event, (self, x) => {
 		self.x += *x;
-		assert!(false);
+		assert!(true);
 	}
 });
 
