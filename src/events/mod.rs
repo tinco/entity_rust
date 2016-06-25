@@ -229,7 +229,7 @@ macro_rules! sync_event {
 		pub mod $name {
 			use shared_mutex::SharedMutex;
 
-			pub type Argument<'a> = $field_typ;
+			pub type Argument<'a,'b> = $field_typ;
 			pub type HandlerFn = fn(Argument);
 
 			lazy_static! {
@@ -237,7 +237,7 @@ macro_rules! sync_event {
 			}
 
 			/// Listeners are a list of functions that should be called by trigger
-			pub fn trigger<'a>($field_name : $field_typ) {
+			pub fn trigger<'a, 'b>($field_name : $field_typ) {
 				let handlers = HANDLERS.read().expect("HANDLERS mutex corrupted");
 				// TODO let handlers define priorities so they can be ordered
 				for handler_fn in handlers.iter() {

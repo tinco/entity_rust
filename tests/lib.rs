@@ -11,8 +11,10 @@ extern crate uuid;
 
 use entity_rust::{ events };
 
+pub struct Bla<'a> { pub x: &'a i64 }
+
 event!{ test_event , x: i64, y: i64 }
-sync_event! { test_sync_event, x: &'a i64 }
+sync_event! { test_sync_event, x: &'a mut super::Bla<'b> }
 component! { test_component, a: i64, b: i64 }
 
 system!( test_system {
@@ -30,7 +32,7 @@ system!( test_system {
 	}
 
 	on_sync test_sync_event, (self, x) => {
-		self.x += *x;
+		self.x += *x.x;
 		assert!(true);
 	}
 });
@@ -68,6 +70,7 @@ fn run_event_runs_system_events() {
 fn run_sync_event() {
 	reset_state();
 	test_system::register();
-	let x = 0;
-	test_sync_event::trigger(&x);
+	let mut x = 0;
+	let mut b = Bla { x: &mut x };
+	test_sync_event::trigger(&mut b);
 }
