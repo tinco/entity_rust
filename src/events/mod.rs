@@ -73,7 +73,7 @@ pub fn run_events() {
 
 		let events_lock = REGISTERED_EVENTS.read().expect("REGISTERED_EVENTS mutex was corrupted");
 		events = event_names.iter().map(|n|
-			events_lock.get(&*n).cloned().expect("Unknown event triggered")
+			events_lock.get(&*n).cloned().expect(&format!("Unknown event triggered: {}", n))
 		).collect();
 	}
 
