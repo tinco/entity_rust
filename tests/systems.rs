@@ -31,31 +31,9 @@ system!( my_system {
 	}
 });
 
-fn reset_state() {
-	let mut state = my_system::STATE.write().expect("System lock corrupted.");
-	state.x = 0;
-}
-
 #[test]
 fn generates_functions() {
 	my_system::register();
-}
-
-#[test]
-fn generates_state() {
-	reset_state();
-	let s = my_system::State::default();
-	assert!(s.x == 0);
-
-	{
-		let mut state = my_system::STATE.write().expect("System lock corrupted.");
-		state.x = 2;
-	}
-
-	{
-		let state = my_system::STATE.read().expect("System lock corrupted");
-		assert!(state.x == 2);
-	}
 }
 
 /*

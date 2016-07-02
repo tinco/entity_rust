@@ -38,8 +38,6 @@ system!( test_system {
 });
 
 fn reset_state() {
-	let mut state = test_system::STATE.write().expect("System lock corrupted.");
-	state.x = 0;
 	test_sync_event::clear_handlers();
 	test_event::clear_handlers();
 }
@@ -51,18 +49,10 @@ fn run_event_runs_system_events() {
 	test_component::register();
 
 	test_component::add(1, test_component::Component { a: 2, b: 10 });
-
-	{
-		let state = test_system::STATE.read().expect("System lock corrupted");
-		assert!(state.x == 0);
-	}
-
 	test_event::trigger(1, 39);
 	events::run_events();
-	{
-		let state = test_system::STATE.read().expect("System lock corrupted");
-		assert_eq!(state.x, 3);
-	}
+	test_event::trigger(1, 39);
+	events::run_events();
 }
 
 

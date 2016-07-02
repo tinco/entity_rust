@@ -261,11 +261,11 @@ macro_rules! system_register {
 			)
 		),*
 	)
-	
+
 	( 
 		$(
 			$sync_event_name:ident
-		),* 
+		),*
 	)
 
 	) => (
