@@ -121,6 +121,7 @@ macro_rules! event {
 			use std::any::{ Any, TypeId };
 			use $crate::events;
 			use uuid::Uuid;
+			use std::sync::Arc;
 
 			/// Example component
 			#[derive(PartialEq,Eq,Clone)]
@@ -128,16 +129,18 @@ macro_rules! event {
 				$(pub $field_name : $field_typ),*
 			}
 
-			pub type HandlerFn = fn(&Vec<Data>, Vec<MappedSharedMutexReadGuard<Any>>, Vec<MappedSharedMutexWriteGuard<Any>>);
+			pub type HandlerFn = fn(Arc<Any>, &Vec<Data>, Vec<MappedSharedMutexReadGuard<Any>>, Vec<MappedSharedMutexWriteGuard<Any>>);
 
 			pub struct Handler {
 				handler_fn: HandlerFn,
+				state: Arc<Any+Sync+Send>,
 				component_types: Vec<TypeId>,
 				mut_component_types: Vec<TypeId>
 			}
 
 			pub struct HandlerInstance {
 				handler_fn: HandlerFn,
+				state: Arc<Any+Sync+Send>,
 				component_types: Vec<TypeId>,
 				mut_component_types: Vec<TypeId>,
 				data: Vec<Data>
@@ -147,6 +150,7 @@ macro_rules! event {
 				pub fn new(h: &Handler, d: Vec<Data>) -> HandlerInstance {
 					HandlerInstance {
 						handler_fn: h.handler_fn,
+						state: h.state.clone(),
 						// TODO are these clones really necessary? would be cool if they could be static refs
 						component_types: h.component_types.clone(),
 						mut_component_types: h.mut_component_types.clone(),
@@ -159,7 +163,8 @@ macro_rules! event {
 				fn run(&self, components: Vec<MappedSharedMutexReadGuard<Any>>, mut_components: Vec<MappedSharedMutexWriteGuard<Any>>) {
 					let handler_fn = self.handler_fn;
 					let data = &self.data;
-					handler_fn(data, components, mut_components) 
+					let state = self.state.clone();
+					handler_fn(state, data, components, mut_components) 
 				}
 
 				fn component_types(&self) -> Vec<TypeId> { self.component_types.clone() }
@@ -186,10 +191,11 @@ macro_rules! event {
 				events::trigger_this_tick(&*EVENT_UUID);
 			}
 
-			pub fn register_handler(handler_fn: HandlerFn, component_types: Vec<TypeId>, mut_component_types: Vec<TypeId>) {
+			pub fn register_handler(state: Arc<Any+Sync+Send>, handler_fn: HandlerFn, component_types: Vec<TypeId>, mut_component_types: Vec<TypeId>) {
 				let mut handlers = HANDLERS.write().expect("Events HANDLERS mutex corrupted");
 				let handler = Handler {
 					handler_fn : handler_fn,
+					state: state,
 					// TODO are these clones really necessary? would be cool if they could be static refs
 					component_types : component_types.clone(),
 					mut_component_types : mut_component_types.clone()
@@ -228,26 +234,37 @@ macro_rules! sync_event {
 	( $name:ident, $field_name:ident : $field_typ:ty ) => (
 		pub mod $name {
 			use shared_mutex::SharedMutex;
+			use std::sync::Arc;
+			use std::any::{ Any };
+
+			pub struct Handler {
+				pub handler_fn: HandlerFn,
+				pub state: Arc<Any+Send+Sync>
+			}
 
 			pub type Argument<'a,'b> = $field_typ;
-			pub type HandlerFn = fn(Argument);
+			pub type HandlerFn = fn(Arc<Any+Send+Sync>, Argument);
 
 			lazy_static! {
-				pub static ref HANDLERS: SharedMutex<Vec<HandlerFn>> = SharedMutex::new(vec![]);
+				pub static ref HANDLERS: SharedMutex<Vec<Handler>> = SharedMutex::new(vec![]);
 			}
 
 			/// Listeners are a list of functions that should be called by trigger
 			pub fn trigger<'a, 'b>($field_name : $field_typ) {
 				let handlers = HANDLERS.read().expect("HANDLERS mutex corrupted");
 				// TODO let handlers define priorities so they can be ordered
-				for handler_fn in handlers.iter() {
-					handler_fn($field_name);
+				for handler in handlers.iter() {
+					(handler.handler_fn)(handler.state.clone(), $field_name);
 				}
 			}
 
-			pub fn register_handler(handler_fn: HandlerFn) {
+			pub fn register_handler(state: Arc<Any+Send+Sync>, handler_fn: HandlerFn) {
 				let mut handlers = HANDLERS.write().expect("Events HANDLERS mutex corrupted");
-				handlers.push(handler_fn);
+				let handler = Handler {
+					handler_fn: handler_fn,
+					state: state
+				};
+				handlers.push(handler);
 			}
 
 			pub fn clear_handlers() {

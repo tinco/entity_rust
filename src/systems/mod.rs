@@ -68,6 +68,7 @@ macro_rules! system {
 			#[allow(unused_imports)]
 			use $crate::entities::{ ComponentList };
 			use shared_mutex::{ MappedSharedMutexReadGuard, MappedSharedMutexWriteGuard };
+			use std::sync::Arc;
 
 			system_contents!{ ( $($contents)* ) [ ] [ ] }
 		}
@@ -182,6 +183,7 @@ macro_rules! on {
 		#[allow(unused_variables)]
 		#[allow(unused_mut)]
 		pub fn $event_name(
+				state: Arc<Any>,
 				data: &Vec<$event_name::Data>,
 				components: Vec<MappedSharedMutexReadGuard<Any>>,
 				mut_components: Vec<MappedSharedMutexWriteGuard<Any>>
@@ -201,7 +203,9 @@ macro_rules! on {
 					.map(|v| v.downcast_mut().expect("Event component not of expected type."));
 			)*
 
-			STATE.write().expect("Event state corrupted").$event_name(
+			let state_casted : &SharedMutex<State> = state.downcast_ref().expect("State not of expected type.");
+
+			state_casted.write().expect("Event state corrupted").$event_name(
 				data,
 				$(&$name),*
 				$(&$mut_name),*
@@ -224,9 +228,12 @@ macro_rules! on_sync {
 		#[allow(unused_variables)]
 		#[allow(unused_mut)]
 		pub fn $event_name(
+				state: Arc<Any+Send+Sync>,
 				data: $event_name::Argument
 			) {
-			STATE.write().expect("Event state corrupted").$event_name(data);
+			let state_ref : &Any = &*state;
+			let state_casted : &SharedMutex<State> = state_ref.downcast_ref().expect("State not of expected type.");
+			state_casted.write().expect("Event state corrupted").$event_name(data);
 		}
 	)
 }
@@ -237,10 +244,6 @@ macro_rules! state {
 		#[derive(Default)]
 		pub struct State {
 			$(pub $name : $field),*
-		}
-
-		lazy_static! {
-			pub static ref STATE: SharedMutex<State> = SharedMutex::new(State::default());
 		}
 	)
 }
@@ -269,14 +272,17 @@ macro_rules! system_register {
 		pub fn register() {
 			#[allow(unused_imports)]
 			use std::any::TypeId;
+
+			let state = Arc::new(SharedMutex::new(State::default()));
+
 			$(
 				let mut_ts = vec![ $( TypeId::of::< $mut_typ::Component >() ),* ];
 				let ts = vec![ $( TypeId::of::< $typ::Component >() ),* ];
-				$event_name::register_handler($event_name, ts, mut_ts);
+				$event_name::register_handler(state.clone(), $event_name, ts, mut_ts);
 			)*
 
 			$(
-				$sync_event_name::register_handler($sync_event_name);
+				$sync_event_name::register_handler(state.clone(), $sync_event_name);
 			)*
 		}
 	)

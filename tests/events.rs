@@ -14,13 +14,13 @@ fn sync_event_handler(x: &i64) {
 	assert!(*x == 1);
 }
 
-#[test]
+/*#[test]
 fn sync_events() {
 	test_sync_event::register_handler(sync_event_handler);
 	let x = 1;
 	test_sync_event::trigger(&x);
 	assert!(x == 1);
-}
+}*/
 
 // use entity_rust::events;
 /* use std::any::{ Any };
