@@ -19,7 +19,7 @@ system!( my_system {
 		y: i64
 	}
 
-	state! { x: i64 }
+	state { x: i64 } { x = 0 }
 
 	on my_event, { positions: position }, {}, (self, data) => {
 		self.x += data[0].x;

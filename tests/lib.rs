@@ -22,7 +22,9 @@ system!( test_system {
 	use super::test_event;
 	use super::test_sync_event;
 
-	state! { x: i64 }
+	state { x: i64 } {
+		x = 0;
+	}
 
 	on test_event, { positions: test_component }, {}, (self, data) => {
 		assert!(data.len() > 0);

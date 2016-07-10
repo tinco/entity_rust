@@ -124,14 +124,14 @@ macro_rules! system_contents {
 
 	(
 		(
-			state! { $($state_declaration:tt)* } $($rest:tt)*
+			state { $($state_declaration:tt)* } $state_initalizer:block $($rest:tt)*
 		) [
 			$( $saved_decl:tt ),*
 		] [ 
 			$( $saved_sync_decl:tt ),*
 		]
 	) => (
-		state! { $($state_declaration)* }
+		state! { ($($state_declaration)*), $state_initalizer }
 
 		system_contents!{
 			( $($rest)* )
@@ -240,10 +240,18 @@ macro_rules! on_sync {
 
 #[macro_export]
 macro_rules! state {
-	( $( $name:ident : $field:ty ),* ) => (
-		#[derive(Default)]
+	( ($( $name:ident : $field:ty ),*), $initializer:block ) => (
 		pub struct State {
 			$(pub $name : $field),*
+		}
+
+		pub fn default_state() -> State {
+			$(let mut $name : $field);* ;
+			$initializer ;
+
+			State {
+				$($name: $name),*
+			}
 		}
 	)
 }
@@ -273,7 +281,9 @@ macro_rules! system_register {
 			#[allow(unused_imports)]
 			use std::any::TypeId;
 
-			let state = Arc::new(SharedMutex::new(State::default()));
+			let state = default_state();
+
+			let state = Arc::new(SharedMutex::new(state));
 
 			$(
 				let mut_ts = vec![ $( TypeId::of::< $mut_typ::Component >() ),* ];
